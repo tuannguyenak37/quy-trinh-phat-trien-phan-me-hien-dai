@@ -1,0 +1,79 @@
+@model List<asp_project.Models.Order>
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Đơn hàng của tôi</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            Bạn chưa có đơn hàng nào.
+        </div>
+    }
+    else
+    {
+        <div class="list-group">
+            @foreach (var order in Model)
+            {
+                <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 border rounded shadow-sm">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Đơn hàng: #@order.Id</h5>
+                        <small>@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</small>
+                    </div>
+                    <p class="mb-1">
+                        <strong>Tổng tiền:</strong> <span class="text-danger fw-bold">@order.TotalAmount.ToString("N0") đ</span>
+                    </p>
+                    <p class="mb-1">
+                        <strong>Trạng thái:</strong> 
+                        <span class="badge 
+                            @(order.Status == "Pending" ? "bg-warning text-dark" : 
+                              order.Status == "Shipping" ? "bg-info text-dark" : 
+                              order.Status == "Delivered" ? "bg-success" : "bg-secondary")">
+                            @order.Status
+                        </span>
+                    </p>
+                    <hr>
+                    <div class="d-flex justify-content-end gap-2">
+    @* Nút xem chi tiết *@
+    <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-outline-primary btn-sm">
+        Xem chi tiết
+    </a>
+    
+    @* --- LOGIC MỚI: NÚT HỦY ĐƠN (Chỉ hiện khi Pending) --- *@
+    @if (order.Status == "Pending")
+    {
+        <form asp-action="CancelOrder" asp-route-id="@order.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không? Hành động này không thể hoàn tác.');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger btn-sm">
+                Hủy đơn hàng
+            </button>
+        </form>
+    }
+
+    @* Nút xác nhận đã nhận hàng (Chỉ hiện khi Shipping) *@
+    @if (order.Status == "Shipping")
+    {
+        <form asp-action="ConfirmDelivery" asp-route-id="@order.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn đã nhận được hàng?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-success btn-sm">
+                Đã nhận được hàng
+            </button>
+        </form>
+    }
+</div>
+                </div>
+            }
+        </div>
+    }
+</div>

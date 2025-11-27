@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Dashboard</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            min-height: 100vh;
+            background: #212529; /* Màu tối */
+            color: #fff;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: #1c1f23;
+            text-align: center;
+            border-bottom: 1px solid #4b545c;
+        }
+
+        .sidebar-menu ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .sidebar-menu ul li {
+            padding: 0;
+        }
+
+        .sidebar-menu ul li a {
+            color: #c2c7d0;
+            display: block;
+            padding: 15px 25px;
+            text-decoration: none;
+            font-size: 16px;
+            border-left: 4px solid transparent;
+            transition: 0.3s;
+        }
+
+        .sidebar-menu ul li a:hover, 
+        .sidebar-menu ul li a.active {
+            background-color: #343a40;
+            color: #fff;
+            border-left-color: #0d6efd; /* Màu xanh highlight */
+        }
+
+        .sidebar-menu ul li a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: 250px; /* Bằng width của sidebar */
+            padding: 0;
+            transition: all 0.3s;
+        }
+
+        .top-navbar {
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,.08);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content-body {
+            padding: 30px;
+        }
+
+        /* Responsive cho Mobile */
+        @@media (max-width: 768px) {
+            .sidebar { margin-left: -250px; }
+            .sidebar.active { margin-left: 0; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h4 class="m-0 fw-bold"><i class="fa fa-shield-halved text-primary"></i> ADMIN</h4>
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <li>
+    <a asp-controller="AdminHome" asp-action="Index" 
+       class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminHome" ? "active" : "")">
+        <i class="fa fa-gauge-high"></i> Tổng quan
+    </a>
+</li>
+                
+                <li>
+                    <a asp-controller="AdminShop" asp-action="Index" 
+                       class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminShop" ? "active" : "")">
+                        <i class="fa fa-users"></i> Quản lý User
+                    </a>
+                </li>
+
+                <li>
+                    <a asp-controller="Product" asp-action="Index"
+                       class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Product" ? "active" : "")">
+                        <i class="fa fa-box-open"></i> Sản phẩm
+                    </a>
+                </li>
+
+                <hr class="border-secondary mx-3 my-2">
+
+                <li>
+                    <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
+                        <a href="javascript:document.getElementById('logoutForm').submit();" class="text-danger">
+                            <i class="fa fa-sign-out-alt"></i> Đăng xuất
+                        </a>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="top-navbar">
+            <button class="btn btn-outline-secondary d-md-none" id="sidebarToggle">
+                <i class="fa fa-bars"></i>
+            </button>
+            <h5 class="m-0 text-muted d-none d-md-block">Hệ thống quản trị</h5>
+            
+            <div class="d-flex align-items-center">
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none text-dark dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff" width="32" height="32" class="rounded-circle me-2">
+                        <strong>Admin</strong>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end text-small shadow">
+                        <li><a class="dropdown-item" href="#">Cài đặt</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="#">Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+            @RenderBody()
+        </div>
+        
+        <footer class="text-center py-3 text-muted border-top bg-white">
+            <small>&copy; 2025 - Hệ thống Admin ASP.NET Core</small>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        // Script để toggle sidebar trên mobile
+        document.getElementById('sidebarToggle')?.addEventListener('click', function () {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

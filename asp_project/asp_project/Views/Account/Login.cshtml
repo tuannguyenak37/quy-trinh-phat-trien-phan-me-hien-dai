@@ -1,0 +1,54 @@
+﻿@model asp_project.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<div class="container min-vh-100 d-flex justify-content-center align-items-center" style="background: #E3F2FD;">
+    <div class="row w-100">
+        <div class="col-md-6 d-none d-md-flex align-items-center justify-content-center">
+            <img src="https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=600&q=80"
+                 alt="Fashion" class="img-fluid rounded shadow" style="max-height:500px;">
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow rounded p-4" style="border:none; background-color:#ffffff;">
+                <h2 class="text-center mb-3" style="color:#0277BD;">@ViewData["Title"]</h2>
+                <h5 class="text-center mb-4 text-muted">Đăng nhập vào tài khoản của bạn</h5>
+
+                <form asp-action="Login" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Email" class="form-label fw-bold">Email</label>
+                        <input asp-for="Email" class="form-control border border-primary" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Password" class="form-label fw-bold">Mật khẩu</label>
+                        <input asp-for="Password" class="form-control border border-primary" type="password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" asp-for="RememberMe" />
+                        <label class="form-check-label">Ghi nhớ tôi?</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill mb-3">Đăng nhập</button>
+
+                    <div class="text-center">
+                        <a asp-action="Register" class="text-decoration-none" style="color:#0277BD;">Chưa có tài khoản? Đăng ký</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

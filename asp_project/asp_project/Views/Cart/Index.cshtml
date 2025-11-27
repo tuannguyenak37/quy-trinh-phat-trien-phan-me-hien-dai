@@ -1,0 +1,244 @@
+@{
+    ViewData["Title"] = "Giỏ hàng của bạn";
+    Layout = "_Layout";
+}
+
+<style>
+    .cart-item-row {
+        border-bottom: 1px solid #eee;
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+    }
+    .cart-product-image { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #eee; }
+    .quantity-input { width: 70px; text-align: center; }
+    .remove-btn { color: #dc3545; cursor: pointer; font-size: 0.9rem; }
+    .remove-btn:hover { text-decoration: underline; }
+</style>
+
+<div class="container mt-4 mb-5">
+    <h1 class="mb-4">🛒 Giỏ hàng của bạn</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex align-items-center">
+                    <div class="form-check me-3">
+                        <input class="form-check-input" type="checkbox" id="select-all-checkbox">
+                    </div>
+                    <h5 class="mb-0">Chọn tất cả sản phẩm</h5>
+                </div>
+                <div class="card-body" id="cart-items-container">
+                    
+                    <div id="cart-empty-message" style="display: none;">
+                        <p class="text-center text-muted p-4">Giỏ hàng của bạn đang trống.</p>
+                        <div class="text-center">
+                            <a href="/" class="btn btn-primary">Tiếp tục mua sắm</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Tổng kết</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tạm tính</span>
+                        <strong id="subtotal-price">0 đ</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Phí vận chuyển</span>
+                        <strong>Miễn phí</strong>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold fs-5">
+                        <span>Tổng cộng</span>
+                        <span class="text-danger" id="total-price">0 đ</span>
+                    </div>
+                    
+                    <div class="d-grid mt-4">
+                        <button class="btn btn-danger btn-lg" id="checkout-btn" onclick="proceedToCheckout()">
+                            Tiến hành thanh toán
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const cartContainer = document.getElementById('cart-items-container');
+            const subtotalPriceEl = document.getElementById('subtotal-price');
+            const totalPriceEl = document.getElementById('total-price');
+            const emptyCartMessage = document.getElementById('cart-empty-message');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            const selectAllCheckbox = document.getElementById('select-all-checkbox');
+
+            // Hàm chính: Đọc 'myCart' và vẽ lại toàn bộ giỏ hàng
+            function renderCart() {
+                let cart = JSON.parse(localStorage.getItem('myCart')) || [];
+                cartContainer.innerHTML = ''; 
+                
+                if (cart.length === 0) {
+                    emptyCartMessage.style.display = 'block';
+                    checkoutBtn.disabled = true; 
+                    selectAllCheckbox.disabled = true;
+                } else {
+                    emptyCartMessage.style.display = 'none';
+                    checkoutBtn.disabled = false;
+                    selectAllCheckbox.disabled = false;
+                    selectAllCheckbox.checked = true; // Mặc định chọn tất cả
+
+                    // 2. Lặp qua sản phẩm và tạo HTML
+                    cart.forEach(item => {
+                        const itemHtml = `
+                            <div class="d-flex align-items-center cart-item-row" data-cart-id="${item.cartItemId}">
+                                <div class="form-check me-3">
+                                    <input class="form-check-input item-checkbox" type="checkbox" value="${item.cartItemId}" checked>
+                                </div>
+                                
+                                <img src="${item.image}" alt="${item.name}" class="cart-product-image me-3" />
+                                
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">${item.name}</h6>
+                                    <small class="text-muted">Phân loại: ${item.variantName}</small>
+                                    <p class="mb-0 fw-bold text-danger" data-price="${item.price}">${item.price.toLocaleString('vi-VN')} đ</p>
+                                </div>
+                                
+                                <div class="px-3">
+                                    <input type="number" class="form-control quantity-input" value="${item.quantity}" min="1" 
+                                           onchange="updateQuantity('${item.cartItemId}', this.value)">
+                                </div>
+                                
+                                <div class="text-end" style="width: 120px;">
+                                    <span class="fw-bold item-total-price">0 đ</span>
+                                </div>
+                                
+                                <div class="ms-3">
+                                    <span class="remove-btn" onclick="removeItem('${item.cartItemId}')">Xóa</span>
+                                </div>
+                            </div>
+                        `;
+                        cartContainer.insertAdjacentHTML('beforeend', itemHtml);
+                    });
+                }
+                
+                // 3. Tính toán lại tổng tiền (dựa trên checkbox)
+                recalculateTotals();
+                addCheckboxListeners();
+            }
+
+            // (MỚI) Hàm tính toán lại tổng tiền
+            function recalculateTotals() {
+                let subtotal = 0;
+                let allChecked = true;
+                
+                document.querySelectorAll('.cart-item-row').forEach(row => {
+                    const checkbox = row.querySelector('.item-checkbox');
+                    const price = parseFloat(row.querySelector('[data-price]').dataset.price);
+                    const quantity = parseInt(row.querySelector('.quantity-input').value);
+                    const itemTotalEl = row.querySelector('.item-total-price');
+                    
+                    let itemTotal = price * quantity;
+                    itemTotalEl.textContent = itemTotal.toLocaleString('vi-VN') + ' đ';
+
+                    if (checkbox.checked) {
+                        subtotal += itemTotal;
+                    } else {
+                        allChecked = false; // Nếu 1 cái bị bỏ chọn, "Chọn tất cả" sẽ tắt
+                    }
+                });
+
+                // Cập nhật tổng tiền
+                subtotalPriceEl.textContent = subtotal.toLocaleString('vi-VN') + ' đ';
+                totalPriceEl.textContent = subtotal.toLocaleString('vi-VN') + ' đ';
+                
+                // Cập nhật nút "Chọn tất cả"
+                selectAllCheckbox.checked = allChecked;
+
+                // Tắt/mở nút thanh toán
+                checkoutBtn.disabled = (subtotal === 0);
+            }
+
+            // (MỚI) Hàm gán sự kiện cho các checkbox
+            function addCheckboxListeners() {
+                // Khi click "Chọn tất cả"
+                selectAllCheckbox.addEventListener('change', function() {
+                    document.querySelectorAll('.item-checkbox').forEach(cb => {
+                        cb.checked = selectAllCheckbox.checked;
+                    });
+                    recalculateTotals();
+                });
+
+                // Khi click checkbox của từng item
+                document.querySelectorAll('.item-checkbox').forEach(cb => {
+                    cb.addEventListener('change', recalculateTotals);
+                });
+            }
+
+            // Hàm cập nhật số lượng (Sửa đổi để gọi recalculateTotals)
+            window.updateQuantity = function(cartItemId, newQuantity) {
+                let cart = JSON.parse(localStorage.getItem('myCart')) || [];
+                let item = cart.find(i => i.cartItemId === cartItemId);
+                
+                if (item) {
+                    item.quantity = parseInt(newQuantity);
+                    if (item.quantity <= 0) item.quantity = 1; 
+                }
+                
+                localStorage.setItem('myCart', JSON.stringify(cart));
+               
+                recalculateTotals(); 
+                
+            }
+
+            
+            window.removeItem = function(cartItemId) {
+                if (!confirm("Bạn có chắc muốn xóa sản phẩm này?")) return;
+                
+                let cart = JSON.parse(localStorage.getItem('myCart')) || [];
+                cart = cart.filter(i => i.cartItemId !== cartItemId);
+                
+                localStorage.setItem('myCart', JSON.stringify(cart));
+                renderCart(); // Phải vẽ lại từ đầu
+                window.dispatchEvent(new Event('cartUpdated')); // Báo cho _Layout cập nhật badge
+            }
+
+            // (MỚI) Hàm chạy khi nhấn "Tiến hành thanh toán"
+            window.proceedToCheckout = function() {
+                let fullCart = JSON.parse(localStorage.getItem('myCart')) || [];
+                let selectedItems = [];
+
+                // 1. Lấy ID của các item đã được check
+                document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
+                    const cartItemId = cb.value;
+                    const item = fullCart.find(i => i.cartItemId === cartItemId);
+                    if (item) {
+                        // (Quan trọng) Lấy số lượng mới nhất từ ô input
+                        const row = cb.closest('.cart-item-row');
+                        const quantity = parseInt(row.querySelector('.quantity-input').value);
+                        item.quantity = quantity; // Cập nhật số lượng
+                        
+                        selectedItems.push(item);
+                    }
+                });
+
+                // 2. Lưu danh sách đã lọc vào key mới
+sessionStorage.setItem('checkoutCart', JSON.stringify(selectedItems));
+                
+                // 3. Chuyển sang trang Thanh toán
+                window.location.href = '/Checkout';
+            }
+
+            // Chạy lần đầu khi tải trang
+            renderCart();
+        });
+    </script>
+}

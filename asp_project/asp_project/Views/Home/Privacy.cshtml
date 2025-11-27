@@ -1,0 +1,128 @@
+﻿@{
+    ViewData["Title"] = "Chính sách Hoạt động và Bảo mật";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <h1 class="text-center mb-4">@ViewData["Title"]</h1>
+            <p class="text-muted text-center mb-5">
+                Cập nhật lần cuối: @DateTime.Now.ToString("dd/MM/yyyy")
+            </p>
+
+            <div class="accordion" id="policyAccordion">
+                
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h2 class="h4 text-primary border-bottom pb-2 mb-3">A. Chính Sách Bảo Mật Thông Tin</h2>
+                        
+                        <h5 class="fw-bold mt-3">1. Mục đích thu thập thông tin</h5>
+                        <p>Việc thu thập dữ liệu chủ yếu trên website <strong>Maliketh</strong> bao gồm: email, điện thoại, tên đăng nhập, mật khẩu đăng nhập, địa chỉ khách hàng. Đây là các thông tin bắt buộc để:</p>
+                        <ul>
+                            <li>Xử lý đơn hàng và giao hàng thời trang đến đúng địa chỉ.</li>
+                            <li>Thông báo về việc giao hàng và hỗ trợ khách hàng.</li>
+                            <li>Cung cấp thông tin liên quan đến sản phẩm (size, chất liệu, mẫu mới).</li>
+                            <li>Xử lý các yêu cầu đổi trả hàng hóa.</li>
+                        </ul>
+
+                        <h5 class="fw-bold mt-3">2. Phạm vi sử dụng thông tin</h5>
+                        <p>Website sử dụng thông tin thành viên cung cấp để:</p>
+                        <ul>
+                            <li>Gửi các thông báo về các hoạt động trao đổi thông tin giữa thành viên và <strong>Maliketh</strong>.</li>
+                            <li>Ngừa các hoạt động phá hủy tài khoản người dùng hoặc các hoạt động giả mạo.</li>
+                            <li>Liên lạc và giải quyết với thành viên trong những trường hợp đặc biệt.</li>
+                            <li>Chia sẻ thông tin cần thiết cho bên đơn vị vận chuyển (GHTK, Viettel Post,...) để giao hàng.</li>
+                        </ul>
+
+                        <h5 class="fw-bold mt-3">3. Thời gian lưu trữ thông tin</h5>
+                        <p>Dữ liệu cá nhân của Thành viên sẽ được lưu trữ cho đến khi có yêu cầu hủy bỏ. Còn lại trong mọi trường hợp thông tin cá nhân thành viên sẽ được bảo mật trên máy chủ của <strong>Maliketh</strong>.</p>
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h2 class="h4 text-primary border-bottom pb-2 mb-3">B. Chính Sách Sản Phẩm & Danh Mục Hàng Hóa</h2>
+
+                        <h5 class="fw-bold mt-3">1. Danh mục sản phẩm kinh doanh</h5>
+                        <p>Website <strong>Maliketh</strong> chuyên kinh doanh các mặt hàng thời trang bao gồm :</p>
+                        <ul>
+                            <li>Thời trang Nam/Nữ: Áo (Sơ mi, Thun, Khoác), Quần (Jeans, Kaki, Short), Váy đầm thiết kế.</li>
+                            <li>Phụ kiện thời trang: Túi xách, nón, thắt lưng, giày dép.</li>
+                        </ul>
+                        <p>Tất cả sản phẩm được đăng bán đều cam kết là hàng <strong>Mới 100% </strong>, có nguồn gốc xuất xứ rõ ràng, đảm bảo tiêu chuẩn chất lượng đã công bố.</p>
+
+                        <h5 class="fw-bold mt-3">2. Quy định về hình ảnh và màu sắc</h5>
+                        <div class="alert alert-warning border-0 small">
+                            <i class="bi bi-exclamation-triangle-fill"></i> <strong>Lưu ý quan trọng:</strong>
+                        </div>
+                        <ul>
+                            <li><strong>Hình ảnh:</strong> Hình ảnh sản phẩm trên website là ảnh chụp thật hoặc ảnh từ nhà sản xuất. Tuy nhiên, màu sắc thực tế của sản phẩm có thể chênh lệch khoảng <strong>3-5%</strong> so với hình ảnh hiển thị trên thiết bị của Quý khách do điều kiện ánh sáng khi chụp và độ phân giải màn hình khác nhau.</li>
+                            <li><strong>Phụ kiện phối kèm:</strong> Các phụ kiện xuất hiện trong ảnh (như hoa cầm tay, trang sức, giày phối cảnh...) chỉ mang tính chất gợi ý phối đồ (styling) và <strong>không</strong> bao gồm trong giá sản phẩm, trừ khi có mô tả cụ thể đi kèm.</li>
+                             <li>    <strong> Mô tả sản phẩm</strong> mô tả sản phẩm phải rõ ràng phải có tag phân loại và danh mục. <br/> Mô tả phải sát với sản phẩm thực tế  liệt kê những phụ kiện đi kèm nếu có</li>
+                        </ul>
+
+                        <h5 class="fw-bold mt-3">3. Quy định về thông số kích thước (Size)</h5>
+                        <ul>
+                            <li>Bảng size (Size Chart) cung cấp trên website là thông số tham khảo chung dựa trên số đo cơ thể tiêu chuẩn của người Việt Nam.</li>
+                            <li>Do đặc tính chất liệu vải (độ co giãn) và quy trình may đo thủ công, kích thước thực tế của sản phẩm có thể có dung sai (sai số) từ <strong>1-2cm</strong>.</li>
+                            <li>Khách hàng được khuyến khích liên hệ bộ phận CSKH để được tư vấn size chính xác nhất trước khi đặt hàng.</li>
+                        </ul>
+
+                        <h5 class="fw-bold mt-3">4. Giá cả và Khuyến mãi</h5>
+                        <p>Giá bán niêm yết trên website là giá bán cuối cùng đã bao gồm thuế GTGT (nếu có). Giá có thể thay đổi tùy thời điểm và chương trình khuyến mãi mà không cần báo trước. Giá bán chưa bao gồm phí vận chuyển (xem chi tiết tại mục Chính sách vận chuyển).</p>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h2 class="h4 text-primary border-bottom pb-2 mb-3">C. Chính Sách Hoạt Động & Đổi Trả</h2>
+
+                        <h5 class="fw-bold mt-3">1. Quy định đặt hàng và thanh toán</h5>
+                        <p>Khách hàng có thể đặt hàng trực tiếp qua website, Facebook hoặc Hotline. Chúng tôi hỗ trợ các phương thức thanh toán:</p>
+                        <ul>
+                            <li>Thanh toán khi nhận hàng (COD).</li>
+                            <li>Chuyển khoản ngân hàng qua tài khoản: <strong>092929290922 - ViettinBank</strong>.</li>
+                            <li>Thanh toán qua ví điện tử (Momo, VNPAY,...).</li>
+                        </ul>
+
+                        <h5 class="fw-bold mt-3">2. Chính sách vận chuyển</h5>
+                        <ul>
+                            <li><strong>Phí ship:</strong> Đồng giá [30.000đ] toàn quốc hoặc miễn phí cho đơn hàng trên [500.000đ].</li>
+                            <li><strong>Thời gian giao hàng:</strong> 
+                                <ul>
+                                    <li>Nội thành: 1-2 ngày.</li>
+                                    <li>Ngoại thành và các tỉnh khác: 3-5 ngày làm việc.</li>
+                                </ul>
+                            </li>
+                            <li>Khách hàng được quyền kiểm tra (đồng kiểm) số lượng và mẫu mã bên ngoài trước khi nhận (không thử đồ).</li>
+                        </ul>
+
+                        <h5 class="fw-bold mt-3">3. Chính sách đổi trả hàng (Đặc thù thời trang)</h5>
+                        <p>Vì đặc thù hàng thời trang, chúng tôi chấp nhận đổi trả trong các trường hợp sau:</p>
+                        <div class="alert alert-light border">
+                            <strong>Điều kiện đổi trả:</strong>
+                            <ul class="mb-0">
+                                <li>Sản phẩm còn nguyên tem, mác, chưa qua sử dụng, chưa giặt ủi và không có mùi lạ.</li>
+                                <li>Thời gian đổi trả: Trong vòng <strong>[03-07] ngày</strong> kể từ ngày nhận hàng.</li>
+                                <li>Hỗ trợ đổi size nếu khách mặc không vừa (khách hàng chịu phí ship 2 chiều).</li>
+                                <li>Lỗi do nhà sản xuất hoặc giao sai mẫu: Shop chịu 100% phí ship đổi trả.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body bg-light">
+                        <h3 class="h5 fw-bold">Thông tin liên hệ giải quyết khiếu nại</h3>
+                        <p>Mọi thắc mắc về chính sách bảo mật hoặc khiếu nại về dịch vụ, vui lòng liên hệ:</p>
+                        <ul class="list-unstyled">
+                            <li><strong>Hotline:</strong> 0979326005</li>
+                            <li><strong>Email:</strong> 23050150@student.bdu.edu.vn</li>
+                            <li><strong>Địa chỉ:</strong> 504 đại lộ bình dương ,Đại Học Bình Dương</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

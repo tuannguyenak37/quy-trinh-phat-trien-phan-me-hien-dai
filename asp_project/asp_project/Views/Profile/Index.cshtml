@@ -1,0 +1,190 @@
+@using asp_project.Models.ViewModels
+@model UserProfileViewModel
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+    // Xác định tab nào đang active (mặc định là 'info')
+    var activeTab = TempData["ActiveTab"] as string ?? "info";
+    var passwordErrors = ViewBag.PasswordErrors as Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white pt-4 pb-0 border-0">
+                    <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link @(activeTab == "info" ? "active" : "") fw-bold" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">
+                                <i class="bi bi-person-vcard"></i> Thông tin cá nhân
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link @(activeTab == "password" ? "active" : "") fw-bold" id="password-tab" data-bs-toggle="tab" data-bs-target="#password" type="button" role="tab">
+                                <i class="bi bi-shield-lock"></i> Đổi mật khẩu
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card-body p-4">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    
+                    @if (passwordErrors != null && !passwordErrors.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach (var error in passwordErrors.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    <div class="tab-content" id="profileTabsContent">
+                        
+                        <div class="tab-pane fade @(activeTab == "info" ? "show active" : "")" id="info" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="text-muted mb-0">Chi tiết hồ sơ</h5>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="btn-unlock-edit" onclick="enableEditMode()">
+                                    <i class="bi bi-pencil-square"></i> Chỉnh sửa
+                                </button>
+                            </div>
+
+                            <form asp-action="UpdateInfo" asp-controller="Profile" method="post" id="form-info">
+                                <input type="hidden" asp-for="Id" />
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label asp-for="FirstName" class="form-label text-secondary small">Họ</label>
+                                        <input asp-for="FirstName" class="form-control" disabled />
+                                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="LastName" class="form-label text-secondary small">Tên</label>
+                                        <input asp-for="LastName" class="form-control" disabled />
+                                        <span asp-validation-for="LastName" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label text-secondary small">Email</label>
+                                    <input asp-for="Email" class="form-control bg-light" readonly />
+                                    <small class="text-muted fst-italic">Email không thể thay đổi.</small>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <label asp-for="Birthday" class="form-label text-secondary small">Ngày sinh</label>
+                                        <input asp-for="Birthday" class="form-control" type="date" disabled />
+                                        <span asp-validation-for="Birthday" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="Role" class="form-label text-secondary small">Vai trò</label>
+                                        <input asp-for="Role" class="form-control bg-light" readonly />
+                                    </div>
+                                </div>
+
+                                <div id="edit-actions" class="d-none justify-content-end gap-2 border-top pt-3">
+                                    <button type="button" class="btn btn-secondary" onclick="cancelEditMode()">Hủy bỏ</button>
+                                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane fade @(activeTab == "password" ? "show active" : "")" id="password" role="tabpanel">
+                            <h5 class="text-muted mb-4">Bảo mật tài khoản</h5>
+                            
+                            <form asp-action="ChangePassword" asp-controller="Profile" method="post">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Mật khẩu hiện tại</label>
+                                    <div class="input-group">
+                                        <input type="password" name="CurrentPassword" class="form-control" required />
+                                        <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                    </div>
+                                </div>
+
+                                <hr class="my-4 border-light" />
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Mật khẩu mới</label>
+                                    <input type="password" name="NewPassword" class="form-control" required minlength="6" />
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Xác nhận mật khẩu mới</label>
+                                    <input type="password" name="ConfirmPassword" class="form-control" required />
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-warning text-dark fw-bold px-4">
+                                        <i class="bi bi-check-circle"></i> Cập nhật mật khẩu
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        // UX Script: Xử lý logic Khóa/Mở khóa form
+        
+        // Lưu trữ giá trị ban đầu để nếu bấm Hủy thì revert lại
+        let initialValues = {};
+
+        function enableEditMode() {
+            const form = document.getElementById('form-info');
+            const inputs = form.querySelectorAll('input:not([readonly])'); // Chỉ lấy input không phải readonly (Email/Role giữ nguyên)
+            
+            // 1. Lưu giá trị cũ
+            inputs.forEach(input => {
+                initialValues[input.id] = input.value;
+                input.removeAttribute('disabled'); // Mở khóa input
+                input.classList.add('border-primary'); // Hiệu ứng visual
+            });
+
+            // 2. Ẩn nút "Chỉnh sửa", Hiện nút "Lưu/Hủy"
+            document.getElementById('btn-unlock-edit').classList.add('d-none');
+            document.getElementById('edit-actions').classList.remove('d-none');
+            document.getElementById('edit-actions').classList.add('d-flex');
+        }
+
+        function cancelEditMode() {
+            const form = document.getElementById('form-info');
+            const inputs = form.querySelectorAll('input:not([readonly])');
+
+            // 1. Revert giá trị cũ & Khóa lại
+            inputs.forEach(input => {
+                if (initialValues[input.id] !== undefined) {
+                    input.value = initialValues[input.id];
+                }
+                input.setAttribute('disabled', 'disabled');
+                input.classList.remove('border-primary');
+            });
+
+            // 2. Hiện nút "Chỉnh sửa", Ẩn nút "Lưu/Hủy"
+            document.getElementById('btn-unlock-edit').classList.remove('d-none');
+            document.getElementById('edit-actions').classList.add('d-none');
+            document.getElementById('edit-actions').classList.remove('d-flex');
+            
+            // Xóa thông báo lỗi validation (nếu có) khi hủy
+            const validationSpans = form.querySelectorAll('.text-danger');
+            validationSpans.forEach(span => span.innerText = '');
+        }
+    </script>
+}

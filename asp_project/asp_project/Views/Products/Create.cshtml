@@ -1,0 +1,396 @@
+﻿@model asp_project.ViewModels.CreateProductViewModel
+
+@{
+    ViewData["Title"] = "Thêm sản phẩm mới";
+}
+
+<h2 class="mb-3">Thêm sản phẩm mới</h2>
+<hr />
+
+<form method="post" enctype="multipart/form-data" asp-action="Create" id="create-product-form">
+    @Html.AntiForgeryToken()
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-3">
+                <div class="card-header fw-bold">Thông tin cơ bản</div>
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label asp-for="Ten" class="form-label fw-bold">Tên sản phẩm</label>
+                        <input asp-for="Ten" class="form-control" id="product-ten" placeholder="Ví dụ: Áo thun nam cotton 100%" />
+                        <span asp-validation-for="Ten" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="MoTa" class="form-label fw-bold">Mô tả chi tiết sản phẩm</label>
+                        <textarea asp-for="MoTa" class="form-control" id="product-mota" rows="6" placeholder="Nhập mô tả sản phẩm..."></textarea>
+                        <span asp-validation-for="MoTa" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header fw-bold">Hình ảnh sản phẩm</div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label asp-for="UploadedImages" class="form-label">Chọn ảnh (có thể chọn nhiều)</label>
+                        <input asp-for="UploadedImages" type="file" class="form-control" id="product-images" multiple />
+                        <small class="text-muted">Ảnh đầu tiên sẽ được dùng làm ảnh đại diện chính.</small>
+                        <span asp-validation-for="UploadedImages" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header fw-bold">Các loại tùy chọn (biến thể)</div>
+                <div class="card-body">
+                    <p class="text-info small">
+                        👉 <strong>Quan trọng:</strong> Nhập các loại tùy chọn (VD: Size, Màu sắc) và các giá trị (VD: S, M, L), cách nhau bằng dấu phẩy.
+                        Hệ thống sẽ tự động <strong>nhân chéo</strong> các tùy chọn để tạo SKU.
+                    </p>
+                    <div id="options-container"></div>
+                </div>
+                <div class="card-footer text-end">
+                    <button type="button" class="btn btn-sm btn-secondary" id="add-option-btn">+ Thêm tùy chọn</button>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header fw-bold">Danh sách Phân loại (Giá & Kho hàng)</div>
+                <div class="card-body">
+                    <p class="text-muted" id="sku-helper-text">
+                        Phần này tự động tạo dựa trên các tùy chọn bạn nhập. Nếu không có tùy chọn, một phân loại "Mặc định" sẽ được tạo.
+                    </p>
+                    <div id="skus-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header fw-bold">Trạng thái</div>
+                <div class="card-body">
+                    <div class="form-check">
+                        <input asp-for="IsVisible" type="checkbox" class="form-check-input" id="product-isvisible" />
+                        <label class="form-check-label" asp-for="IsVisible">Hiển thị sản phẩm</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header fw-bold">Danh mục</div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Thêm danh mục (nhấn Enter để thêm)</label>
+                        <input type="text" class="form-control" id="danh-muc-input" placeholder="Ví dụ: Áo nam, Thời trang hè..." />
+                        <div id="danh-muc-tags" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header fw-bold">Thuộc tính mô tả</div>
+                <div class="card-body" id="attributes-container"></div>
+                <div class="card-footer text-end">
+                    <button type="button" class="btn btn-sm btn-secondary" id="add-attribute-btn">+ Thêm thuộc tính</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3 mb-5 text-end">
+        <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">💾 Lưu sản phẩm</button>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Hủy</a>
+    </div>
+</form>
+
+
+<template id="template-option">
+    <div class="d-flex mb-2 option-row">
+        <input type="text" class="form-control me-2" placeholder="Tên loại (VD: Màu sắc)" data-name="Ten" />
+        <input type="text" class="form-control me-2" placeholder="Các giá trị, cách nhau bằng dấu phẩy (VD: Đỏ, Xanh)" data-name="GiaTri" />
+        <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove(); generateSkus();">Xóa</button>
+    </div>
+</template>
+
+<template id="template-attribute">
+    <div class="d-flex mb-2 attribute-row">
+        <input type="text" class="form-control me-2" placeholder="Tên (VD: Chất liệu)" data-name="TenThuocTinh" />
+        <input type="text" class="form-control me-2" placeholder="Giá trị (VD: Cotton)" data-name="GiaTri" />
+        <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Xóa</button>
+    </div>
+</template>
+
+<template id="template-sku">
+    <div class="p-2 border rounded mb-2 sku-row">
+        <p class="fw-bold mb-2">Biến thể: <span class="sku-name-display text-primary"></span></p>
+
+        <!-- (SỬA) Thêm hiển thị SkuCode để shop thấy -->
+        <p class="mb-2">Mã Phân loại (SKU): <code class="sku-code-display"></code></p>
+
+        <div class="sku-data-hidden"></div>
+
+        <div class="input-group mb-2">
+            <span class="input-group-text">Giá bán</span>
+            <input type="number" class="form-control" placeholder="0" data-name="GiaBan" value="0" min="0" />
+        </div>
+        <div class="input-group mb-2">
+            <span class="input-group-text">Tồn kho</span>
+            <input type="number" class="form-control" placeholder="0" data-name="TonKho" value="0" min="0" />
+        </div>
+    </div>
+</template>
+
+@section Scripts {
+    <script>
+        // --- 1. LOGIC TẠO SKU ---
+        function generateSkus() {
+            const container = $("#skus-container");
+            const existingSkus = {};
+
+            // 1. Lưu giá & tồn kho cũ
+            container.find(".sku-row").each(function() {
+                const name = $(this).find('[data-name="SkuKey"]').val();
+                if(name) {
+                    existingSkus[name] = {
+                        GiaBan: $(this).find('[data-name="GiaBan"]').val(),
+                        TonKho: $(this).find('[data-name="TonKho"]').val()
+                    };
+                }
+            });
+            container.empty();
+
+            // 2. Lấy tất cả các tùy chọn
+            let allOptions = [];
+            $("#options-container .option-row").each(function () {
+                let ten = $(this).find('[data-name="Ten"]').val().trim();
+                let giaTriStr = $(this).find('[data-name="GiaTri"]').val().trim();
+                if (!ten || !giaTriStr) return;
+
+                let values = giaTriStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                if (values.length > 0) {
+                    allOptions.push(values.map(v => ({ Ten: ten, GiaTri: v }) ));
+                }
+            });
+
+            // 3. Hàm tính tích Đề-các (Cartesian product)
+            const cartesian = allOptions.length > 0 ? allOptions.reduce((a, b) =>
+                a.flatMap(d => b.map(e => [d, e].flat()))
+            ) : [];
+
+            // 4. Nếu không có tùy chọn -> Tạo SKU Mặc định
+            if (allOptions.length === 0) {
+                const template = document.getElementById('template-sku');
+                const clone = template.content.cloneNode(true);
+                $(clone).find('.sku-name-display').text("Mặc định");
+
+                // (SỬA) Thêm SkuCode rỗng cho Mặc định
+                $(clone).find('.sku-code-display').text("(Mặc định)");
+                $(clone).find('.sku-data-hidden').html(
+                    '<input type="hidden" data-name="SkuKey" value="Default" />' +
+                    '<input type="hidden" data-name="SkuCode" value="" />' // SkuCode Mặc định là rỗng
+                );
+
+                if (existingSkus["Default"]) {
+                     $(clone).find('[data-name="GiaBan"]').val(existingSkus["Default"].GiaBan);
+                     $(clone).find('[data-name="TonKho"]').val(existingSkus["Default"].TonKho);
+                }
+
+                container.append(clone);
+                $("#sku-helper-text").show();
+                return;
+            }
+             $("#sku-helper-text").hide();
+
+            // 5. Tạo SKU cho mỗi tổ hợp
+            cartesian.forEach(combination => {
+                let comboArray = Array.isArray(combination) ? combination : [combination];
+
+                const template = document.getElementById('template-sku');
+                const clone = template.content.cloneNode(true);
+
+                let displayName = comboArray.map(opt => `${opt.Ten}: ${opt.GiaTri}`).join(' / ');
+                let skuKey = comboArray.map(opt => `${opt.Ten}:${opt.GiaTri}`).sort().join('|');
+
+                // -------------------------------------------------
+                // (MỚI) TỰ ĐỘNG TẠO SKUCODE
+                // -------------------------------------------------
+                let productNameSimple = document.getElementById('product-ten').value.trim().substring(0, 10).toUpperCase().replace(/\s+/g, '-');
+                if (!productNameSimple) productNameSimple = "SP"; // Dự phòng nếu tên rỗng
+                let skuValuesSimple = comboArray.map(opt => opt.GiaTri.toUpperCase().replace(/\s+/g, '')).join('-');
+                let finalSkuCode = `${productNameSimple}-${skuValuesSimple}`;
+                // -------------------------------------------------
+
+                $(clone).find('.sku-name-display').text(displayName);
+                $(clone).find('.sku-code-display').text(finalSkuCode); // (MỚI) Hiển thị SkuCode
+
+                // Thêm các input ẩn cho GiaTriTuyChon để binding
+                let hiddenInputs = '';
+
+                // (MỚI) Thêm SkuCode vào input ẩn
+                hiddenInputs += `<input type="hidden" data-name="SkuCode" value="${finalSkuCode}" />`;
+
+                comboArray.forEach((opt, index) => {
+                    hiddenInputs += `<input type="hidden" data-name="GiaTriTuyChon.Ten" value="${opt.Ten}" data-option-index="${index}" />`;
+                    hiddenInputs += `<input type="hidden" data-name="GiaTriTuyChon.GiaTri" value="${opt.GiaTri}" data-option-index="${index}" />`;
+                });
+                hiddenInputs += `<input type="hidden" data-name="SkuKey" value="${skuKey}" />`;
+
+                $(clone).find('.sku-data-hidden').html(hiddenInputs);
+
+                // Phục hồi giá/tồn kho cũ
+                if (existingSkus[skuKey]) {
+                    $(clone).find('[data-name="GiaBan"]').val(existingSkus[skuKey].GiaBan);
+                    $(clone).find('[data-name="TonKho"]').val(existingSkus[skuKey].TonKho);
+                }
+
+                container.append(clone);
+            });
+        }
+
+        // --- 2. CÁC HÀM CHUẨN BỊ FORMDATA ---
+        function prepareTags(formData) {
+            $('#danh-muc-tags .badge').each(function(index) {
+                let tag = $(this).text().replace(' x', '').trim();
+                formData.append(`DanhMuc[${index}]`, tag);
+            });
+        }
+
+        function prepareAttributes(formData) {
+            $("#attributes-container .attribute-row").each(function(index, row) {
+                let ten = $(row).find('[data-name="TenThuocTinh"]').val().trim();
+                let giaTri = $(row).find('[data-name="GiaTri"]').val().trim();
+
+                if (ten && giaTri) {
+                    formData.append(`ThuocTinh[${index}].TenThuocTinh`, ten);
+                    formData.append(`ThuocTinh[${index}].GiaTri`, giaTri);
+                }
+            });
+        }
+
+        function prepareOptions(formData) {
+             $("#options-container .option-row").each(function(index,row){
+                let ten = $(row).find('[data-name="Ten"]').val().trim();
+                let giaTriStr = $(row).find('[data-name="GiaTri"]').val().trim();
+
+                if(ten) {
+                    formData.append(`TuyChon[${index}].Ten`, ten);
+                    let giaTriList = giaTriStr.split(',').map(s=>s.trim()).filter(s => s.length > 0);
+                    giaTriList.forEach((v,i)=> formData.append(`TuyChon[${index}].GiaTri[${i}]`, v));
+                }
+            });
+        }
+
+        // (ĐÃ SỬA) HÀM NÀY GIỜ SẼ GỬI CẢ SKUCODE
+        function prepareSkus(formData) {
+            const skus = $("#skus-container .sku-row");
+            if (skus.length > 0) {
+                skus.each(function(skuIndex, row) {
+
+                    // (MỚI) Thêm SkuCode vào FormData
+                    formData.append(`Skus[${skuIndex}].SkuCode`, $(row).find('[data-name="SkuCode"]').val() || '');
+
+                    formData.append(`Skus[${skuIndex}].GiaBan`, $(row).find('[data-name="GiaBan"]').val() || 0);
+                    formData.append(`Skus[${skuIndex}].TonKho`, $(row).find('[data-name="TonKho"]').val() || 0);
+
+                    $(row).find('.sku-data-hidden [data-name="GiaTriTuyChon.Ten"]').each(function() {
+                        let optIndex = $(this).data('option-index');
+                        let optTen = $(this).val();
+                        let optGiaTri = $(row).find(`.sku-data-hidden [data-name="GiaTriTuyChon.GiaTri"][data-option-index="${optIndex}"]`).val();
+
+                        formData.append(`Skus[${skuIndex}].GiaTriTuyChon[${optIndex}].Ten`, optTen);
+                        formData.append(`Skus[${skuIndex}].GiaTriTuyChon[${optIndex}].GiaTri`, optGiaTri);
+                    });
+                });
+            }
+        }
+
+        // --- 3. LOGIC KHỞI TẠO VÀ SUBMIT ---
+        $(document).ready(function () {
+            // Thêm dòng tùy chọn & thuộc tính
+            $("#add-option-btn").click(function(){
+                let template = document.getElementById('template-option');
+                let clone = template.content.cloneNode(true);
+                $("#options-container").append(clone);
+                generateSkus(); // Gọi lại hàm tạo SKU
+            });
+
+            $("#add-attribute-btn").click(function(){
+                let template = document.getElementById('template-attribute');
+                let clone = template.content.cloneNode(true);
+                $("#attributes-container").append(clone);
+            });
+
+            // Khi nhập dữ liệu trong tùy chọn, tự động sinh SKU
+            $("#options-container").on('input', '[data-name="Ten"], [data-name="GiaTri"]', generateSkus);
+
+            // (MỚI) Khi nhập tên sản phẩm, cũng sinh lại SKU
+            $("#product-ten").on('input', generateSkus);
+
+            // Danh mục
+            $('#danh-muc-input').on('keypress', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    let tag = $(this).val().trim();
+                    if (tag) {
+                        let tagHtml = `<span class="badge bg-primary me-1 mb-1">${tag} <button type="button" class="btn-close btn-close-white" aria-label="Close" onclick="this.parentElement.remove()"></button></span>`;
+                        $('#danh-muc-tags').append(tagHtml);
+                        $(this).val('');
+                    }
+                }
+            });
+$("#create-product-form").on('submit', async function(e) {
+    e.preventDefault();
+
+    if (!$(this).valid()) return;
+
+    const submitBtn = $("#submit-btn");
+    submitBtn.prop('disabled', true).text('Đang lưu...');
+
+    // (SỬA) Chỉ cần dòng này, nó đã tự động lấy
+    // TẤT CẢ dữ liệu, bao gồm cả file ảnh
+    const formData = new FormData(this); 
+
+    // -------------------------------------------------
+    // (SỬA) XÓA BỎ KHỐI CODE GÂY LỖI LẶP ẢNH
+    //
+    // const files = $('#product-images')[0].files;
+    // for (let i = 0; i < files.length; i++) {
+    //     formData.append(`UploadedImages`, files[i]);
+    // }
+    // -------------------------------------------------
+
+
+    // 2. Thêm các dữ liệu động
+    prepareTags(formData);
+    prepareAttributes(formData);
+    prepareOptions(formData);
+    prepareSkus(formData); // (Hàm này giờ đã gửi SkuCode)
+
+    try {
+        const response = await fetch('/Products/Create', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            window.location.href = '/Products/Index';
+        } else {
+            const errorText = await response.text();
+            alert('Lỗi khi lưu sản phẩm. Vui lòng kiểm tra console (F12).');
+            console.error("Server Response Error:", errorText);
+        }
+    } catch (error) {
+        alert('Lỗi kết nối mạng: ' + error.message);
+        console.error('Network Error:', error);
+    } finally {
+        submitBtn.prop('disabled', false).text('💾 Lưu sản phẩm');
+    }
+});
+
+            // Sinh SKU lần đầu khi tải trang
+            generateSkus();
+        });
+    </script>
+    <partial name="_ValidationScriptsPartial" />
+}

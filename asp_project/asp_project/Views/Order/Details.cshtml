@@ -1,0 +1,83 @@
+@model asp_project.Models.Order
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-3">Chi tiết đơn hàng</h1>
+    <p>Mã đơn hàng: <strong>#@Model.Id</strong></p>
+    <a asp-action="Index" class="btn btn-secondary mb-4">&larr; Quay lại danh sách</a>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Thông tin giao hàng</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Người nhận:</strong> @Model.CustomerName</p>
+                    <p><strong>Số điện thoại:</strong> @Model.CustomerPhone</p>
+                    <p><strong>Địa chỉ:</strong> @Model.CustomerAddress</p>
+                    <p><strong>Ghi chú:</strong> @(string.IsNullOrEmpty(Model.Notes) ? "Không có" : Model.Notes)</p>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Thông tin thanh toán</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Tổng tiền:</strong> <span class="fs-4 fw-bold text-danger">@Model.TotalAmount.ToString("N0") đ</span></p>
+                    <p><strong>Phương thức:</strong> @Model.PaymentMethod</p>
+                    <p><strong>Trạng thái:</strong> 
+                        <span class="badge 
+                            @(Model.Status == "Pending" ? "bg-warning text-dark" : 
+                              Model.Status == "Shipping" ? "bg-info text-dark" : 
+                              Model.Status == "Delivered" ? "bg-success" : "bg-secondary")">
+                            @Model.Status
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Các sản phẩm đã mua</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table align-middle">
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td style="width: 80px;">
+                                        @if (!string.IsNullOrEmpty(item.ImagePath))
+                                        {
+                                            <img src="@item.ImagePath" alt="@item.ProductName" 
+                                                 style="width: 70px; height: 70px; object-fit: cover;" class="rounded" />
+                                        }
+                                        else
+                                        {
+                                            <div style="width: 70px; height: 70px; background: #eee;" class="rounded d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-image"></i>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">@item.ProductName</div>
+                                        <small class="text-muted">Phân loại: @item.VariantName</small>
+                                    </td>
+                                    <td>@item.Price.ToString("N0") đ</td>
+                                    <td>x @item.Quantity</td>
+                                    <td class="text-end fw-bold">@((item.Price * item.Quantity).ToString("N0")) đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

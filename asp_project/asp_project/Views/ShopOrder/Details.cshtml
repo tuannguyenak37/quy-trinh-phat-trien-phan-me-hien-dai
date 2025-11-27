@@ -1,0 +1,60 @@
+@model asp_project.Models.Order
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng của Shop";
+    Layout = "_StoreLayout";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-3">Chi tiết đơn hàng (Shop)</h1>
+    <p>Mã đơn hàng: <strong>#@Model.Id</strong></p>
+    <a asp-action="Index" class="btn btn-secondary mb-4">&larr; Quay lại danh sách</a>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Thông tin khách hàng</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Người nhận:</strong> @Model.CustomerName</p>
+                    <p><strong>Số điện thoại:</strong> @Model.CustomerPhone</p>
+                    <p><strong>Địa chỉ:</strong> @Model.CustomerAddress</p>
+                    <p><strong>Ghi chú:</strong> @(string.IsNullOrEmpty(Model.Notes) ? "Không có" : Model.Notes)</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Các sản phẩm của bạn trong đơn này</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Phân loại</th>
+                                <th>Giá</th>
+                                <th>SL</th>
+                                <th>Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>@item.ProductName</td>
+                                    <td>@item.VariantName</td>
+                                    <td>@item.Price.ToString("N0") đ</td>
+                                    <td>x @item.Quantity</td>
+                                    <td class="text-end fw-bold">@((item.Price * item.Quantity).ToString("N0")) đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

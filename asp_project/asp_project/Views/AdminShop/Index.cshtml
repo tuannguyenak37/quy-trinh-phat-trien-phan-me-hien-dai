@@ -1,0 +1,87 @@
+@model IEnumerable<asp_project.Models.Shop>
+
+@{
+    ViewData["Title"] = "Quản lý Đối tác (Shop)";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid p-4">
+    <h2 class="mb-4 fw-bold text-warning"><i class="fa fa-store"></i> Quản lý Shop</h2>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="d-flex gap-2">
+                <input type="text" name="searchString" class="form-control" 
+                       placeholder="Nhập tên Shop để tìm..." value="@ViewBag.CurrentFilter">
+                <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                <a asp-action="Index" class="btn btn-secondary">Reset</a>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Tên Shop</th>
+                        <th>Liên hệ</th>
+                        <th>Ngày tạo</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@item.ShopName</strong><br/>
+                                <small class="text-muted">CCCD: @item.CCCD</small>
+                            </td>
+                            <td>
+                                <i class="fa fa-phone small"></i> @item.Phone
+                            </td>
+                            <td>@item.CreatedAt.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center">
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">Đang hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Đã bị cấm</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <form asp-action="ToggleStatus" method="post" style="display:inline;">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    @if (item.IsActive)
+                                    {
+                                        <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn chắc chắn muốn CẤM shop này?');">
+                                            <i class="fa fa-ban"></i> Cấm
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-outline-success">
+                                            <i class="fa fa-unlock"></i> Mở khóa
+                                        </button>
+                                    }
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,50 @@
+﻿@model asp_project.Models.Product
+
+@{
+    ViewData["Title"] = "Tạo sản phẩm mới";
+}
+
+<h1 class="display-5 mb-4">Tạo sản phẩm mới</h1>
+
+<div class="alert alert-info" role="alert">
+    <strong>Bước 1/2:</strong> Nhập thông tin cơ bản. Sau khi lưu, bạn sẽ được chuyển đến trang "Sửa"
+    để thêm hình ảnh, màu sắc và size.
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form asp-action="CreateProduct" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Ten" class="form-label fw-bold">Tên sản phẩm</label>
+                <input asp-for="Ten" class="form-control" />
+                <span asp-validation-for="Ten" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MoTa" class="form-label fw-bold">Mô tả chi tiết</label>
+                <textarea asp-for="MoTa" class="form-control" rows="8"></textarea>
+                <span asp-validation-for="MoTa" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="DanhMuc" class="form-label fw-bold">Danh mục</label>
+                <input asp-for="DanhMuc" class="form-control" placeholder="Ví dụ: Áo thun, Thời trang nam" />
+                <div class="form-text">Nhập các danh mục, cách nhau bằng dấu phẩy (,).</div>
+            </div>
+
+            <hr />
+
+            <div class="d-flex justify-content-end">
+                <a asp-action="Products" class="btn btn-secondary me-2">Hủy bỏ</a>
+                <button type="submit" class="btn btn-primary">
+                    Lưu và tiếp tục (Thêm ảnh/Size)
+                    <i class="bi bi-arrow-right-circle-fill ms-2"></i>
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>

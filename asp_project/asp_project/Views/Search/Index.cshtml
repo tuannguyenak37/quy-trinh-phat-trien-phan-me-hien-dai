@@ -1,0 +1,80 @@
+@model asp_project.ViewModels.SearchViewModel
+@{
+    ViewData["Title"] = $"Kết quả tìm kiếm cho: {Model.SearchQuery}";
+}
+
+<div class="container mt-4">
+    
+    <div class="row mb-4">
+        <div class="col-md-8 offset-md-2">
+            <h2>Tìm kiếm sản phẩm</h2>
+            <form asp-controller="Search" asp-action="Index" method="get" class="d-flex">
+                <input type="search" name="q" class="form-control form-control-lg" 
+                       placeholder="Nhập tên sản phẩm, tag (ví dụ: áo nam)..." 
+                       value="@Model.SearchQuery" 
+                       aria-label="Tìm kiếm">
+                <button type="submit" class="btn btn-primary btn-lg ms-2">Tìm</button>
+            </form>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        @if (string.IsNullOrWhiteSpace(Model.SearchQuery))
+        {
+            <div class="col-12 text-center text-muted">
+                <p>Vui lòng nhập từ khóa để tìm kiếm.</p>
+            </div>
+        }
+        else if (!Model.Results.Any())
+        {
+            <div class="col-12 text-center text-muted">
+                <h4>Không tìm thấy kết quả</h4>
+                <p>Không có sản phẩm nào khớp với từ khóa "@Model.SearchQuery".</p>
+            </div>
+        }
+        else
+        {
+            <div class="col-12 mb-3">
+                <h4 class="fw-normal">
+                    Tìm thấy <strong>@Model.Results.Count()</strong> kết quả cho 
+                    "<strong>@Model.SearchQuery</strong>"
+                </h4>
+            </div>
+
+            @foreach (var product in Model.Results)
+            {
+                // Lấy giá thấp nhất từ các Sku
+                var minPrice = product.Skus.Any() ? 
+                               product.Skus.Min(s => s.GiaBan) : 
+                               0;
+                // Lấy ảnh đầu tiên
+                var imageUrl = product.HinhAnh.FirstOrDefault() ?? "/images/placeholder.png";
+                
+                <div class="col-md-3 col-6 mb-4">
+                    <div class="card h-100 shadow-sm border-0 product-card">
+                        
+                        <a asp-controller="ProductPage" asp-action="Details" asp-route-id="@product.Id">
+                            <img src="@imageUrl" class="card-img-top" 
+                                 alt="@product.Ten" 
+                                 style="height: 200px; object-fit: cover;">
+                        </a>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fs-6">
+                                <a asp-controller="ProductPage" asp-action="Details" asp-route-id="@product.Id" 
+                                   class="text-decoration-none text-dark stretched-link">
+                                    @product.Ten
+                                </a>
+                            </h5>
+                            <p class="card-text text-danger fw-bold mt-auto">
+                                @minPrice.ToString("N0") đ
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+</div>

@@ -1,0 +1,90 @@
+@model List<asp_project.Models.Order>
+@{
+    ViewData["Title"] = "Quản lý Đơn hàng";
+    // (Giả sử bạn có Layout riêng cho Dashboard của Shop)
+    Layout = "_StoreLayout"; 
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Quản lý Đơn hàng</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            Shop của bạn chưa có đơn hàng nào.
+        </div>
+    }
+    else
+    {
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã Đơn hàng</th>
+                    <th>Ngày đặt</th>
+                    <th>Khách hàng</th>
+                    <th>Tổng tiền (Tạm tính)</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@order.Id" class="fw-bold">
+                                #@order.Id.Substring(order.Id.Length - 6)
+                            </a>
+                        </td>
+                        <td>@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                        <td>@order.CustomerName</td>
+                        <td>@order.TotalAmount.ToString("N0") đ</td>
+                        <td>
+                            <span class="badge 
+                                @(order.Status == "Pending" ? "bg-warning text-dark" : 
+                                  order.Status == "Shipping" ? "bg-info text-dark" : 
+                                  order.Status == "Delivered" ? "bg-success" : "bg-secondary")">
+                                @order.Status
+                            </span>
+                        </td>
+                        <td>
+                            @if (order.Status == "Pending" || order.Status == "Processing")
+                            {
+                                <form asp-action="UpdateStatus" asp-route-id="@order.Id" method="post" class="d-flex gap-2">
+                                    @Html.AntiForgeryToken()
+                                    <select name="newStatus" class="form-select form-select-sm" style="min-width: 120px;">
+                                        @if (order.Status == "Pending")
+                                        {
+                                            <option value="Processing">Xử lý (Processing)</option>
+                                        }
+                                        @if (order.Status == "Processing")
+                                        {
+                                            <option value="Shipping">Giao hàng (Shipping)</option>
+                                        }
+                                        <option value="Cancelled">Hủy đơn (Cancelled)</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary btn-sm">Cập nhật</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-outline-secondary btn-sm">
+                                    Xem
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

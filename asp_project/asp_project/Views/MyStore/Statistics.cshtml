@@ -1,0 +1,201 @@
+@{
+    ViewData["Title"] = "Thống kê & Hóa đơn";
+    // Đặt tháng/năm hiện tại cho bộ lọc hóa đơn
+    var defaultMonthYear = DateTime.UtcNow.ToString("yyyy-MM");
+    // Đặt năm hiện tại cho biểu đồ
+    var defaultYear = DateTime.UtcNow.Year;
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Thống kê Doanh thu & Hóa đơn</h1>
+
+    <div class="row g-4">
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    Doanh thu (VNĐ) theo tháng (chỉ tính đơn đã giao)
+                    <div class="col-3">
+                        <label for="yearSelector" class="form-label visually-hidden">Chọn năm</label>
+                        <select id="yearSelector" class="form-select">
+                            <option value="@(defaultYear + 1)">Năm @(defaultYear + 1)</option>
+                            <option value="@defaultYear" selected>Năm @defaultYear</option>
+                            <option value="@(defaultYear - 1)">Năm @(defaultYear - 1)</option>
+                            <option value="@(defaultYear - 2)">Năm @(defaultYear - 2)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyRevenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <h2 class="mb-4 mt-5">Danh sách Hóa đơn</h2>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+             <div class="row g-2 justify-content-between align-items-end">
+                <div class="col-md-4">
+                    <label for="monthSelector" class="form-label">Chọn tháng</label>
+                    <input type="month" id="monthSelector" class="form-control" value="@defaultMonthYear">
+                </div>
+                <div class="col-md-4 d-grid d-md-flex gap-2">
+                     <button id="filterOrdersButton" class="btn btn-primary">Xem Hóa đơn</button>
+                     <a id="exportExcelButton" href="#" class="btn btn-success" download>
+                         <i class="bi bi-file-earmark-excel"></i> Xuất Excel
+                     </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+             <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã Đơn Hàng</th>
+                            <th>Ngày Tạo</th>
+                            <th>Khách Hàng</th>
+                            <th>Doanh Thu (Shop)</th>
+                            <th>Trạng Thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <tr>
+                            <td colspan="5" class="text-center p-4 text-muted">Vui lòng chọn tháng và nhấn "Xem Hóa đơn"</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        let monthlyRevenueChartInstance = null; // Biểu đồ tháng
+
+        // Lấy các phần tử
+        const yearSelector = document.getElementById('yearSelector');
+        const monthSelector = document.getElementById('monthSelector');
+        const filterOrdersButton = document.getElementById('filterOrdersButton');
+        const exportExcelButton = document.getElementById('exportExcelButton');
+        const ordersTableBody = document.getElementById('ordersTableBody');
+
+
+        // --- Hàm 1: Tải Biểu đồ Doanh thu Tháng ---
+        async function fetchAndRenderMonthlyRevenue() {
+            const year = yearSelector.value;
+            
+            try {
+                // (SỬA) Gọi API trong MyStore
+                const response = await fetch(`/MyStore/GetMonthlyRevenueStats?year=${year}`);
+                if (!response.ok) throw new Error('Lỗi tải biểu đồ tháng');
+                
+                const data = await response.json();
+                console.log("Dữ liệu biểu đồ tháng:", data);
+
+                if (monthlyRevenueChartInstance) {
+                    monthlyRevenueChartInstance.destroy();
+                }
+
+                const ctx = document.getElementById('monthlyRevenueChart').getContext('2d');
+                monthlyRevenueChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Doanh thu (Đã giao)',
+                            data: data.revenueData,
+                            backgroundColor: 'rgba(23, 162, 184, 0.7)', // Màu info
+                            borderColor: 'rgba(23, 162, 184, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { scales: { y: { beginAtZero: true } } }
+                });
+
+            } catch (error) {
+                console.error(error);
+                alert(error.message);
+            }
+        }
+
+        // --- Hàm 2: Tải Bảng Hóa đơn ---
+        async function fetchAndRenderOrdersTable() {
+            const [year, month] = monthSelector.value.split('-'); 
+            
+            filterOrdersButton.disabled = true;
+            filterOrdersButton.textContent = "Đang tải...";
+            ordersTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4">Đang tải dữ liệu...</td></tr>`;
+
+            try {
+                // (SỬA) Gọi API trong MyStore
+                const response = await fetch(`/MyStore/GetOrdersByMonth?year=${year}&month=${month}`);
+                if (!response.ok) throw new Error('Lỗi tải danh sách hóa đơn');
+
+                const orders = await response.json();
+                console.log("Dữ liệu hóa đơn:", orders);
+                
+                ordersTableBody.innerHTML = ''; 
+                
+                if (orders.length === 0) {
+                    ordersTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-muted">Không tìm thấy hóa đơn nào cho tháng này.</td></tr>`;
+                } else {
+                    orders.forEach(order => {
+                        // Thêm badge màu tùy trạng thái
+                        let statusBadge = 'bg-secondary';
+                        if (order.status === 'Pending') statusBadge = 'bg-warning text-dark';
+                        if (order.status === 'Shipping') statusBadge = 'bg-info text-dark';
+                        if (order.status === 'Delivered') statusBadge = 'bg-success';
+                        if (order.status === 'Cancelled') statusBadge = 'bg-danger';
+
+                        const row = `
+                            <tr>
+                                <td class="py-2"><a href="/Order/Details/${order.id}" target="_blank">${order.id.slice(-8)}...</a></td>
+                                <td class="py-2">${order.createdAt}</td>
+                                <td class="py-2">${order.customerName}</td>
+                                <td class="py-2 fw-bold">${order.shopTotal.toLocaleString('vi-VN')} đ</td>
+                                <td class="py-2"><span class="badge ${statusBadge}">${order.status}</span></td>
+                            </tr>
+                        `;
+                        ordersTableBody.insertAdjacentHTML('beforeend', row);
+                    });
+                }
+                
+                // Cập nhật link cho nút Excel
+                exportExcelButton.href = `/MyStore/ExportOrdersToExcel?year=${year}&month=${month}`;
+
+            } catch (error) {
+                console.error(error);
+                ordersTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-danger">${error.message}</td></tr>`;
+            } finally {
+                filterOrdersButton.disabled = false;
+                filterOrdersButton.textContent = "Xem Hóa đơn";
+            }
+        }
+
+        // --- GẮN SỰ KIỆN ---
+        
+        yearSelector.addEventListener('change', fetchAndRenderMonthlyRevenue);
+        filterOrdersButton.addEventListener('click', fetchAndRenderOrdersTable);
+        
+        // Tải lần đầu
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchAndRenderMonthlyRevenue();
+            
+            // Tự động cập nhật link Excel lần đầu
+            const [year, month] = monthSelector.value.split('-');
+            exportExcelButton.href = `/MyStore/ExportOrdersToExcel?year=${year}&month=${month}`;
+            
+            // Cập nhật link Excel mỗi khi đổi tháng
+            monthSelector.addEventListener('change', () => {
+                 const [y, m] = monthSelector.value.split('-');
+                 exportExcelButton.href = `/MyStore/ExportOrdersToExcel?year=${y}&month=${m}`;
+            });
+        });
+    </script>
+}

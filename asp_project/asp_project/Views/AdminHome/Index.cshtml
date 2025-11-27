@@ -1,0 +1,163 @@
+@model asp_project.Models.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Tổng quan hệ thống";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var cultureInfo = new System.Globalization.CultureInfo("vi-VN");
+}
+
+<div class="container-fluid p-4">
+    <h2 class="mb-4 fw-bold text-secondary"><i class="fa fa-chart-line"></i> Dashboard Quản Trị</h2>
+
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 border-start border-4 border-success h-100">
+                <div class="card-body">
+                    <p class="text-uppercase text-muted fw-bold mb-1 small">Tổng Doanh Thu</p>
+                    <h4 class="fw-bold text-success">@Model.TotalRevenue.ToString("C0", cultureInfo)</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 border-start border-4 border-primary h-100">
+                <div class="card-body">
+                    <p class="text-uppercase text-muted fw-bold mb-1 small">Lợi Nhuận (10%)</p>
+                    <h4 class="fw-bold text-primary">@Model.PlatformProfit.ToString("C0", cultureInfo)</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 border-start border-4 border-warning h-100">
+                <div class="card-body">
+                    <p class="text-uppercase text-muted fw-bold mb-1 small">Số Shop</p>
+                    <h4 class="fw-bold text-warning">@Model.TotalShops</h4>
+                    <small class="text-muted">
+                        <span class="text-success"><i class="fa fa-check"></i> @Model.ActiveShops hoạt động</span>
+                        <span class="text-danger ms-1"><i class="fa fa-ban"></i> @Model.BannedShops cấm</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 border-start border-4 border-info h-100">
+                <div class="card-body">
+                    <p class="text-uppercase text-muted fw-bold mb-1 small">Số User</p>
+                    <h4 class="fw-bold text-info">@Model.TotalUsers</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-bold text-primary">Tỷ lệ Tài khoản</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-bold text-primary">Tăng trưởng thành viên (6 tháng qua)</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="areaChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-bold text-success">Biểu đồ Doanh thu & Lợi nhuận</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="barChart" style="max-height: 400px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Lấy dữ liệu từ C#
+    var labels = @Html.Raw(Json.Serialize(Model.ChartLabels));
+    var userGrowth = @Html.Raw(Json.Serialize(Model.UserGrowthData));
+    var shopGrowth = @Html.Raw(Json.Serialize(Model.ShopGrowthData));
+    var revenueData = @Html.Raw(Json.Serialize(Model.RevenueGrowthData));
+    var profitData = @Html.Raw(Json.Serialize(Model.ProfitGrowthData));
+
+    var totalUsers = @Model.TotalUsers;
+    var totalShops = @Model.TotalShops;
+
+    // 1. PIE CHART
+    new Chart(document.getElementById('pieChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['User', 'Shop'],
+            datasets: [{
+                data: [totalUsers, totalShops],
+                backgroundColor: ['#36A2EB', '#FFCE56']
+            }]
+        }
+    });
+
+    // 2. AREA CHART
+    new Chart(document.getElementById('areaChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'User mới',
+                    data: userGrowth,
+                    borderColor: '#36A2EB',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Shop mới',
+                    data: shopGrowth,
+                    borderColor: '#FFCE56',
+                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: { responsive: true }
+    });
+
+    // 3. BAR CHART
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Doanh Thu',
+                    data: revenueData,
+                    backgroundColor: '#198754',
+                    order: 2
+                },
+                {
+                    type: 'line',
+                    label: 'Lợi Nhuận',
+                    data: profitData,
+                    borderColor: '#0d6efd',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    order: 1
+                }
+            ]
+        },
+        options: { responsive: true }
+    });
+</script>

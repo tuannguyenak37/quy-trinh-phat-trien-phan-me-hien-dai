@@ -1,0 +1,77 @@
+﻿@model asp_project.Dtos.ShopRegistrationDto
+
+@{
+    ViewData["Title"] = "Đăng ký Shop";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container mt-5">
+    <h2 class="mb-4">Đăng ký Shop</h2>
+
+    <form asp-action="RegisterShop" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+
+        <div class="mb-3">
+            <label asp-for="ShopName" class="form-label">Tên Shop</label>
+            <input asp-for="ShopName" class="form-control" placeholder="Nhập tên shop" />
+            <span asp-validation-for="ShopName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Phone" class="form-label">Số điện thoại</label>
+            <input asp-for="Phone" class="form-control" placeholder="Nhập số điện thoại" />
+            <span asp-validation-for="Phone" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="CCCD" class="form-label">Căn cước công dân</label>
+            <input asp-for="CCCD" class="form-control" placeholder="Nhập CCCD" />
+            <span asp-validation-for="CCCD" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label">Mô tả</label>
+            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Mô tả shop"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Address" class="form-label">Địa chỉ</label>
+            <input asp-for="Address" class="form-control" placeholder="Nhập địa chỉ shop" />
+            <span asp-validation-for="Address" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="AvatarFile" class="form-label">Avatar Shop</label>
+            <input asp-for="AvatarFile" type="file" class="form-control" />
+            <span asp-validation-for="AvatarFile" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Danh mục kinh doanh</label>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="CategoryIds" value="Áo" id="catAo">
+                <label class="form-check-label" for="catAo">Áo</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="CategoryIds" value="Quần" id="catQuan">
+                <label class="form-check-label" for="catQuan">Quần</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="CategoryIds" value="Giày" id="catGiay">
+                <label class="form-check-label" for="catGiay">Giày</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="CategoryIds" value="Phụ kiện" id="catPhuKien">
+                <label class="form-check-label" for="catPhuKien">Phụ kiện</label>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Đăng ký Shop</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

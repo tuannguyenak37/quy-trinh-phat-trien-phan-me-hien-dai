@@ -1,0 +1,384 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - maliketh fashion</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/asp_project.styles.css" asp-append-version="true" />
+
+    <style>
+        :root {
+            --brand-color: #007bff;
+            --brand-color-light: #5ca8ff;
+        }
+        .navbar {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        .navbar-brand-custom {
+            font-family: 'Pacifico', cursive;
+            font-size: 2.2rem; 
+            line-height: 1; 
+            color: var(--brand-color) !important;
+            padding-top: 0;
+            padding-bottom: 0;
+            transition: color 0.3s ease;
+        }
+        .navbar-brand-custom:hover {
+            color: var(--brand-color-light) !important;
+        }
+        .search-form-container { /* Dùng cho dropdown wrapper */
+            min-width: 350px;
+            position: relative;
+        }
+        .search-form {
+            position: relative;
+        }
+        .search-input {
+            border-radius: 25px;
+            border: 1px solid #ddd;
+            padding-left: 1.25rem;
+            padding-right: 3rem;
+        }
+        .search-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: none;
+            color: var(--brand-color);
+            font-size: 1.2rem;
+            padding: 0 0.75rem;
+            transition: color 0.3s ease;
+        }
+        .search-btn:hover {
+            color: var(--brand-color-light);
+        }
+        .nav-icon-btn {
+            font-size: 1.5rem;
+            color: #555;
+            margin-left: 0.75rem;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+        .nav-icon-btn:hover {
+            color: var(--brand-color);
+        }
+        .user-dropdown-toggle::after { display: none; }
+        .user-dropdown-toggle { display: flex; align-items: center; }
+        .user-avatar {
+            font-size: 1.5rem;
+            color: #555;
+            margin-right: 0.5rem;
+            transition: color 0.3s ease;
+        }
+        .user-dropdown-toggle:hover .user-avatar,
+        .user-dropdown-toggle:hover {
+            color: var(--brand-color) !important;
+        }
+        .dropdown-menu-end {
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+            border: none;
+            border-radius: 8px;
+            margin-top: 0.75rem !important;
+        }
+        
+        /* Style cho dropdown menu tìm kiếm */
+        .search-dropdown-menu {
+             width: 100%; 
+             top: 95% !important; /* Dịch xuống dưới ô input 1 chút */
+             box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+             border-color: #ddd;
+             max-height: 400px;
+             overflow-y: auto;
+        }
+        .search-dropdown-menu .tag-btn {
+            border-radius: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white mb-3">
+            <div class="container-fluid">
+
+                <a class="navbar-brand-custom me-3" asp-area="" asp-controller="Home" asp-action="Index">
+                    maliketh fashion
+                </a>
+
+                @if (User.Identity == null || !User.IsInRole("shop"))
+                {
+                    <a class="btn btn-outline-primary ms-3"
+                       asp-controller="Shop" asp-action="RegisterShopView"
+                       style="border-radius: 20px; padding: 0.375rem 1rem;">
+                        Trở thành đối tác
+                    </a>
+                }
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="navbar-collapse collapse">
+
+                    <div class="d-flex mx-auto dropdown search-form-container">
+                        
+                        <form class="search-form w-100" asp-controller="Search" asp-action="Index" method="get" role="search" id="main-search-form">
+                            
+                            <input class="form-control search-input" type="search" name="q" 
+                                   placeholder="Tìm áo thun, quần jean,..." aria-label="Search"
+                                   id="main-search-input" data-bs-toggle="dropdown" 
+                                   data-bs-auto-close="outside" 
+                                   autocomplete="off"> 
+                                   
+                            <button class="search-btn" type="submit"><i class="bi bi-search"></i></button>
+                        </form>
+                        
+                        <div class="dropdown-menu p-2 search-dropdown-menu" id="search-suggestions-box">
+                            <div class="text-muted p-2">Nhập để tìm kiếm...</div>
+                        </div>
+                    </div>
+
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                        <li class="nav-item">
+                            <a class="nav-link nav-icon-btn" asp-controller="Cart" asp-action="Index" title="Giỏ hàng">
+                                <i class="bi bi-cart3"></i>
+                                <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                      style="display: none; font-size: 0.7rem;">
+                                    0
+                                </span>
+                            </a>
+                        </li>
+
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link user-dropdown-toggle text-dark" href="#" id="navbarDropdownUser" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle user-avatar"></i>
+                                    <span>@User.Identity.Name</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownUser">
+                                    <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index">Thông tin cá nhân</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Order" asp-action="Index">Hóa đơn</a></li>
+
+                                    @if (User.IsInRole("shop"))
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" asp-controller="MyStore" asp-action="Index">Tổng quan Shop</a></li>
+                                        <li><a class="dropdown-item" asp-controller="MyStore" asp-action="Statistics">Thống kê Shop</a></li>
+                                    }
+
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item" style="cursor:pointer">Đăng xuất</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark fw-medium" asp-area="" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-primary" asp-area="" asp-controller="Account" asp-action="Register"
+                                   style="background-color: var(--brand-color); border-color: var(--brand-color); border-radius: 20px; padding: 0.375rem 1rem;">
+                                    Đăng ký
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="bg-dark text-white pt-5 pb-4 border-top border-secondary">
+    <div class="container">
+        <div class="row text-center text-md-start">
+            
+            <div class="col-md-4 col-lg-4 col-xl-4 mx-auto mb-4">
+                <h5 class="text-uppercase fw-bold mb-4">
+                    <i class="bi bi-gem me-2"></i>Maliketh Fashion
+                </h5>
+                <p class="text-white-50 small">
+                    Nơi định hình phong cách của bạn. Chúng tôi cam kết mang đến những sản phẩm thời trang chất lượng, dẫn đầu xu hướng với mức giá tốt nhất.
+                </p>
+            </div>
+
+            <div class="col-md-3 col-lg-3 col-xl-3 mx-auto mb-4">
+                <h6 class="text-uppercase fw-bold mb-4">Chính sách khách hàng</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-white-50 text-decoration-none hover-white">
+                            Chính sách bảo mật & Hoạt động
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-white-50 text-decoration-none hover-white">Hướng dẫn chọn size</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-white-50 text-decoration-none hover-white">Tra cứu đơn hàng</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="col-md-5 col-lg-5 col-xl-5 mx-auto mb-md-0 mb-4">
+                <h6 class="text-uppercase fw-bold mb-4">Liên hệ & Khiếu nại</h6>
+                <p class="text-white-50 mb-2">
+                    <i class="bi bi-geo-alt me-2"></i> 504 Đại lộ Bình Dương, Đại Học Bình Dương
+                </p>
+                <p class="text-white-50 mb-2">
+                    <i class="bi bi-envelope me-2"></i> 
+                    <a href="mailto:23050150@student.bdu.edu.vn" class="text-white-50 text-decoration-none">23050150@student.bdu.edu.vn</a>
+                </p>
+                <p class="text-white-50 mb-2">
+                    <i class="bi bi-telephone me-2"></i> 
+                    <a href="tel:0979326005" class="text-white-50 text-decoration-none fw-bold">0979 326 005</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center p-3 border-top border-secondary" style="background-color: rgba(0, 0, 0, 0.2);">
+        <span class="text-white-50">© 2025 Copyright:</span>
+        <a class="text-white text-decoration-none fw-bold" href="/"> Maliketh Fashion</a>
+    </div>
+</footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // --- Phần 1: Cập nhật Badge Giỏ hàng (Giữ nguyên) ---
+            const cartBadge = document.getElementById('cart-badge');
+            function updateCartBadge() {
+                let cart = JSON.parse(localStorage.getItem('myCart')) || [];
+                let itemCount = cart.length; 
+                if (itemCount > 0) {
+                    cartBadge.textContent = itemCount;
+                    cartBadge.style.display = 'block'; 
+                } else {
+                    cartBadge.style.display = 'none'; 
+                }
+            }
+            updateCartBadge();
+            window.addEventListener('cartUpdated', updateCartBadge);
+
+            // --- (MỚI) Phần 2: Xử lý Gợi ý Tìm kiếm Động ---
+
+            // Hàm "debounce" để chờ người dùng gõ xong mới tìm
+            function debounce(func, delay) {
+                let timeout;
+                return function(...args) {
+                    const context = this;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(context, args), delay);
+                };
+            }
+
+            const searchInput = document.getElementById('main-search-input');
+            const suggestionsBox = document.getElementById('search-suggestions-box');
+            const searchForm = document.getElementById('main-search-form');
+
+            // Hàm hiển thị "Hot Tags" (khi ô tìm kiếm trống)
+            const showHotTags = () => {
+                suggestionsBox.innerHTML = `
+                    <h6 class="dropdown-header px-2">Xu hướng tìm kiếm</h6>
+                    <div class="d-flex flex-wrap gap-2 p-2">
+                        <a class="btn btn-outline-secondary btn-sm tag-btn" href="/Search/Index?q=áo thun">Áo thun</a>
+                        <a class="btn btn-outline-secondary btn-sm tag-btn" href="/Search/Index?q=áo nam">Áo nam</a>
+                        <a class="btn btn-outline-secondary btn-sm tag-btn" href="/Search/Index?q=quần jean">Quần jean</a>
+                        <a class="btn btn-outline-secondary btn-sm tag-btn" href="/Search/Index?q=váy nữ">Váy nữ</a>
+                    </div>
+                `;
+            };
+
+            // Hàm gọi API và hiển thị gợi ý sản phẩm
+            const fetchSuggestions = async (query) => {
+                try {
+                    const response = await fetch(`/Search/GetSuggestions?q=${encodeURIComponent(query)}`);
+                    if (!response.ok) return;
+
+                    const suggestions = await response.json();
+                    
+                    if (suggestions.length === 0) {
+                        suggestionsBox.innerHTML = '<div class="text-muted p-2">Không tìm thấy gợi ý nào.</div>';
+                        return;
+                    }
+
+                    // Xây dựng danh sách gợi ý
+                    let html = '<h6 class="dropdown-header px-2">Gợi ý sản phẩm</h6>';
+                    suggestions.forEach(item => {
+                        const imageUrl = item.image || "/images/placeholder.png"; // Ảnh mặc định
+                        // (Quan trọng) Bấm vào gợi ý sẽ đi đến trang chi tiết
+                        html += `
+                            <a href="/Product/Details/${item.id}" class="dropdown-item d-flex align-items-center py-2">
+                                <img src="${imageUrl}" width="40" height="40" class="rounded me-2" style="object-fit: cover;" />
+                                <span>${item.ten}</span>
+                            </a>
+                        `;
+                    });
+                    
+                    // Thêm link "Xem tất cả" (đi đến trang tìm kiếm lớn)
+                    html += '<hr class="dropdown-divider">';
+                    html += `<button type="submit" form="main-search-form" class="dropdown-item text-primary fw-bold">Xem tất cả kết quả cho "${query}"</button>`;
+
+                    suggestionsBox.innerHTML = html;
+                    
+                } catch (error) {
+                    console.error("Lỗi tìm kiếm gợi ý:", error);
+                    suggestionsBox.innerHTML = '<div class="text-danger p-2">Lỗi khi tải gợi ý.</div>';
+                }
+            };
+
+            // Gắn sự kiện "keyup" (gõ phím) vào ô tìm kiếm, với debounce 300ms
+            searchInput.addEventListener('keyup', debounce(async (e) => {
+                // Bỏ qua các phím điều hướng
+                if (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Escape') return; 
+                
+                const query = e.target.value.trim();
+                
+                if (query.length < 2) {
+                    showHotTags(); // Nếu query ngắn, hiện "Hot Tags"
+                } else {
+                    await fetchSuggestions(query); // Nếu query đủ dài, tìm gợi ý
+                }
+            }, 300)); // 300ms delay
+
+            // Hiển thị "Hot Tags" ngay khi người dùng nhấp vào ô
+            searchInput.addEventListener('focus', () => {
+                const query = searchInput.value.trim();
+                if (query.length < 2) {
+                    showHotTags();
+                }
+            });
+        });
+    </script>
+</body> 
+</html>

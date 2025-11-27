@@ -1,0 +1,363 @@
+@model asp_project.Models.Product
+@using System.Text.Json;
+@using System.Text.Encodings.Web; 
+
+@{
+    ViewData["Title"] = Model.Ten;
+    Layout = "_Layout";
+
+    // --- CẤU HÌNH JSON (SỬA LỖI FONT TIẾNG VIỆT) ---
+    var jsonOptions = new JsonSerializerOptions
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, // Giữ nguyên tiếng Việt, không mã hóa thành \u...
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,     // Chuyển Property C# (GiaBan) -> JS (giaBan)
+        WriteIndented = false
+    };
+
+    // --- CHUẨN BỊ DỮ LIỆU ---
+    var minPrice = Model.Skus.Any() ? Model.Skus.Min(s => s.GiaBan) : 0;
+    var maxPrice = Model.Skus.Any() ? Model.Skus.Max(s => s.GiaBan) : 0;
+    var priceDisplay = minPrice == maxPrice ? minPrice.ToString("N0") + " đ" : $"{minPrice:N0} đ - {maxPrice:N0} đ";
+    var totalStock = Model.Skus.Sum(s => s.TonKho);
+    
+    var allImages = Model.HinhAnh.ToList();
+    // Lấy thêm ảnh từ các SKU nếu có
+    if (Model.Skus != null)
+    {
+        allImages.AddRange(Model.Skus.SelectMany(s => s.HinhAnh ?? new List<string>()));
+    }
+    allImages = allImages.Distinct().ToList();
+    var mainImage = allImages.Any() ? allImages[0] : "/images/default.jpg";
+}
+
+<style>
+    :root {
+        --theme-color-light: #eaf5ff;
+        --theme-color: #007bff;
+        --theme-color-dark: #0056b3;
+    }
+    .product-detail-container { background-color: #fff; padding: 24px; border-radius: 8px; }
+    .product-gallery-main { width: 100%; height: 450px; object-fit: contain; border: 1px solid #eee; border-radius: 5px; margin-bottom: 10px; }
+    .product-gallery-thumbnails { display: flex; gap: 8px; overflow-x: auto; }
+    .thumbnail-image { width: 80px; height: 80px; object-fit: cover; border: 2px solid #eee; border-radius: 4px; cursor: pointer; transition: border-color 0.2s; }
+    .thumbnail-image:hover, .thumbnail-image.active { border-color: var(--theme-color); }
+    .product-info h1 { font-size: 24px; font-weight: 600; margin-bottom: 16px; }
+    .product-price-panel { background-color: var(--theme-color-light); padding: 15px 20px; border-radius: 4px; margin-bottom: 20px; }
+    .product-price { font-size: 28px; font-weight: bold; color: var(--theme-color); }
+    .variant-section { margin-bottom: 15px; }
+    .variant-label { font-weight: 600; color: #555; min-width: 80px; margin-top: 8px; }
+    .variant-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+    .variant-btn { background-color: #fff; border: 1px solid #ddd; padding: 6px 16px; border-radius: 4px; cursor: pointer; min-width: 50px; text-align: center; transition: all 0.2s; }
+    .variant-btn:hover { border-color: var(--theme-color); color: var(--theme-color); }
+    .variant-btn.active { background-color: var(--theme-color-light); border-color: var(--theme-color); color: var(--theme-color); font-weight: bold; }
+    .variant-btn.disabled { background-color: #f9f9f9; color: #ccc; border-color: #eee; cursor: not-allowed; text-decoration: line-through; }
+    .product-specifications, .product-description { margin-top: 30px; background-color: #fff; padding: 24px; border-radius: 8px; }
+    .spec-table { width: 100%; }
+    .spec-table tr { border-bottom: 1px solid #f0f0f0; }
+    .spec-table td { padding: 12px 8px; }
+    .spec-table-label { background-color: #fafafa; color: #777; width: 25%; }
+    .spec-table-value { width: 75%; }
+    .modal-product-image { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; }
+</style>
+
+<div class="container mt-4">
+    <div class="product-detail-container">
+        <div class="row">
+            <div class="col-md-5">
+                <img src="@mainImage" id="main-product-image" class="product-gallery-main" alt="@Model.Ten" />
+                <div class="product-gallery-thumbnails">
+                    @foreach (var imgUrl in allImages)
+                    {
+                        <img src="@imgUrl" class="thumbnail-image @(imgUrl == mainImage ? "active" : "")" onclick="changeMainImage(this, '@imgUrl')" />
+                    }
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <h1>@Model.Ten</h1>
+                <div class="product-price-panel">
+                    <span class="product-price" id="product-price-display">@priceDisplay</span>
+                </div>
+                
+                <div id="variant-selector">
+                    @foreach (var option in Model.TuyChon)
+                    {
+                        <div class="d-flex align-items-start variant-section">
+                            <span class="variant-label">@option.Ten</span>
+                            <div class="variant-buttons">
+                                @foreach (var value in option.GiaTri)
+                                {
+                                    <button class="variant-btn" 
+                                            data-option-ten="@option.Ten" 
+                                            data-option-giatri="@value"
+                                            onclick="selectOption(this, '@option.Ten', '@value')">
+                                        @value
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex align-items-center mt-3">
+                    <span class="variant-label">Số lượng</span>
+                    <input type="number" id="quantity-input" value="1" min="1" class="form-control" style="width: 80px; margin-right: 15px;">
+                    <span id="product-stock-display">@totalStock</span>
+                    <span class="ms-1"> sản phẩm có sẵn</span>
+                </div>
+
+                <div class="mt-4">
+                    <button id="add-to-cart-btn" class="btn btn-lg" style="background-color: var(--theme-color-light); border: 1px solid var(--theme-color); color: var(--theme-color);" 
+                            onclick="addToCart()" disabled>
+                        🛒 Thêm vào giỏ hàng
+                    </button>
+                    
+                    <button id="buy-now-btn" class="btn btn-lg" style="background-color: var(--theme-color); color: white;" disabled>
+                        Mua ngay
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="product-specifications mt-4">
+        <h3>Thông số kỹ thuật</h3>
+        <table class="spec-table mt-3">
+            <tbody>
+                @foreach (var attr in Model.ThuocTinh)
+                {
+                    <tr>
+                        <td class="spec-table-label">@attr.TenThuocTinh</td>
+                        <td class="spec-table-value">@attr.GiaTri</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="product-description mt-4 mb-5">
+        <h3>Mô tả sản phẩm</h3>
+        <div class="mt-3">
+            @Html.Raw(Model.MoTa?.Replace("\n", "<br />"))
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cart-success-modal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="cartModalLabel">✅ Đã thêm vào giỏ hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center">
+                    <img id="modal-product-image" src="" class="modal-product-image me-3" />
+                    <div>
+                        <h6 class="mb-1" id="modal-product-name"></h6>
+                        <small class="text-muted" id="modal-variant-name"></small>
+                        <p class="mb-1 fw-bold" id="modal-price"></p>
+                        <p class="mb-0 text-muted" id="modal-quantity"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tiếp tục mua sắm</button>
+                <a href="/Cart" class="btn btn-primary">Xem giỏ hàng</a> 
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. CHUẨN BỊ DỮ LIỆU (FIX LỖI FONT & CAMELCASE) ---
+    // Sử dụng JsonSerializer.Serialize với options đã cấu hình ở trên
+    const productSkus = @Html.Raw(JsonSerializer.Serialize(Model.Skus, jsonOptions)); 
+    
+    const totalOptionTypes = @Model.TuyChon.Count;
+    const productId = '@Model.Id';
+    const productName = '@Html.Raw(Model.Ten)'; // Dùng Html.Raw cho tên nếu có ký tự đặc biệt
+    const defaultImage = '@mainImage';
+    const initialPriceDisplay = '@priceDisplay';
+    const initialStockDisplay = '@totalStock';
+
+    // --- 2. BIẾN TOÀN CỤC VÀ DOM ELEMENTS ---
+    let userSelection = {};
+    let selectedSku = null; 
+
+    const mainImage = document.getElementById('main-product-image');
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+    const buyNowBtn = document.getElementById('buy-now-btn');
+    const quantityInput = document.getElementById('quantity-input');
+    const priceDisplay = document.getElementById('product-price-display');
+    const stockDisplay = document.getElementById('product-stock-display');
+    
+    var cartSuccessModal;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            var modalEl = document.getElementById('cart-success-modal');
+            if(modalEl) {
+                 cartSuccessModal = new bootstrap.Modal(modalEl);
+            }
+        }
+    });
+
+    const modalProductName = document.getElementById('modal-product-name');
+    const modalVariantName = document.getElementById('modal-variant-name');
+    const modalPrice = document.getElementById('modal-price');
+    const modalQuantity = document.getElementById('modal-quantity');
+    const modalProductImageEl = document.getElementById('modal-product-image'); // Đổi tên biến tránh trùng lặp ID
+
+    // --- 3. HÀM XỬ LÝ HÌNH ẢNH ---
+    function changeMainImage(thumbElement, imageUrl) {
+        mainImage.src = imageUrl;
+        document.querySelectorAll('.thumbnail-image').forEach(img => img.classList.remove('active'));
+        thumbElement.classList.add('active');
+    }
+
+    // --- 4. HÀM XỬ LÝ CHỌN TÙY CHỌN (SKU) ---
+    function selectOption(btnElement, optionTen, optionGiaTri) {
+        const buttonRow = btnElement.closest('.variant-buttons');
+        buttonRow.querySelectorAll('.variant-btn').forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+        
+        userSelection[optionTen] = optionGiaTri;
+        
+        // Kiểm tra xem đã chọn đủ các tùy chọn chưa
+        const selectedCount = Object.keys(userSelection).length;
+        if (selectedCount === totalOptionTypes) {
+            findAndApplySku();
+        }
+    }
+    
+    function findAndApplySku() {
+        addToCartBtn.disabled = true;
+        buyNowBtn.disabled = true;
+        selectedSku = null;
+
+        // Tìm SKU khớp với lựa chọn
+        // Lưu ý: do dùng camelCase trong JsonSerializerOptions, property C# GiaTriTuyChon -> JS giaTriTuyChon
+        const matchingSku = productSkus.find(sku => {
+            return sku.giaTriTuyChon.every(opt => { 
+                // opt.Ten -> opt.ten, opt.GiaTri -> opt.giaTri
+                return userSelection[opt.ten] === opt.giaTri;
+            });
+        });
+
+        if (matchingSku) {
+            // Cập nhật giá và tồn kho
+            priceDisplay.textContent = matchingSku.giaBan.toLocaleString('vi-VN') + ' đ';
+            stockDisplay.textContent = matchingSku.tonKho;
+            selectedSku = matchingSku; 
+            quantityInput.max = matchingSku.tonKho;
+            
+            if (matchingSku.tonKho > 0) {
+                addToCartBtn.disabled = false; 
+                buyNowBtn.disabled = false;    
+                quantityInput.value = 1; 
+            } else {
+                stockDisplay.textContent = "Hết hàng";
+            }
+            
+            // Cập nhật hình ảnh theo SKU
+            if (matchingSku.hinhAnh && matchingSku.hinhAnh.length > 0) {
+                const skuImageUrl = matchingSku.hinhAnh[0];
+                mainImage.src = skuImageUrl;
+                
+                // Highlight thumbnail tương ứng
+                let thumbFound = false;
+                document.querySelectorAll('.thumbnail-image').forEach(img => {
+                    // So sánh đường dẫn tương đối hoặc tuyệt đối
+                    if (img.src.includes(skuImageUrl)) {
+                        img.classList.add('active');
+                        thumbFound = true;
+                    } else {
+                        img.classList.remove('active');
+                    }
+                });
+            }
+        } else {
+            // Không tìm thấy biến thể (trường hợp hiếm nếu dữ liệu chuẩn)
+            priceDisplay.textContent = initialPriceDisplay; 
+            stockDisplay.textContent = initialStockDisplay;
+            selectedSku = null;
+        }
+    }
+    
+    // --- 5. HÀM THÊM VÀO GIỎ (LOCALSTORAGE) ---
+    function addToCart() {
+        if (!selectedSku) {
+            alert("Vui lòng chọn đầy đủ phân loại hàng.");
+            return;
+        }
+        if(selectedSku.tonKho <= 0) {
+             alert("Sản phẩm này đang tạm hết hàng.");
+             return;
+        }
+
+        const quantity = parseInt(quantityInput.value);
+        if (isNaN(quantity) || quantity <= 0) {
+            alert("Số lượng không hợp lệ.");
+            return;
+        }
+        if (quantity > selectedSku.tonKho) {
+            alert("Số lượng vượt quá tồn kho.");
+            return;
+        }
+        
+        let cart = JSON.parse(localStorage.getItem('myCart')) || [];
+        
+        // Tạo ID duy nhất cho item trong giỏ: ProductID + SkuCode
+        const cartItemId = `${productId}_${selectedSku.skuCode}`;
+        
+        let existingItem = cart.find(item => item.cartItemId === cartItemId);
+        let itemToShowInModal;
+
+        if (existingItem) {
+            existingItem.quantity += quantity;
+            // Đảm bảo không vượt quá tồn kho khi cộng dồn
+            if(existingItem.quantity > selectedSku.tonKho) {
+                 existingItem.quantity = selectedSku.tonKho;
+            }
+            itemToShowInModal = existingItem;
+        } else {
+            // Tạo tên phân loại từ options đã chọn
+            const variantNameStr = Object.values(userSelection).join(' / ');
+
+            const newItem = {
+                cartItemId: cartItemId,
+                productId: productId,
+                skuCode: selectedSku.skuCode,
+                name: productName,
+                variantName: variantNameStr || 'Mặc định',
+                price: selectedSku.giaBan,
+                image: (selectedSku.hinhAnh && selectedSku.hinhAnh.length > 0) ? selectedSku.hinhAnh[0] : defaultImage,
+                quantity: quantity
+            };
+            cart.push(newItem);
+            itemToShowInModal = newItem;
+        }
+
+        localStorage.setItem('myCart', JSON.stringify(cart));
+        showSuccessModal(itemToShowInModal);
+        
+        // Dispatch event để Header/Cart icon cập nhật số lượng ngay lập tức
+        window.dispatchEvent(new Event('cartUpdated'));
+    }
+    
+    // --- 6. HÀM HIỂN THỊ MODAL ---
+    function showSuccessModal(item) {
+        if (!cartSuccessModal) {
+            // Fallback nếu modal chưa load kịp hoặc lỗi
+            alert("Đã thêm vào giỏ hàng thành công!"); 
+            return;
+        }
+        
+        modalProductName.textContent = item.name;
+        modalVariantName.textContent = `Phân loại: ${item.variantName}`;
+        modalPrice.textContent = item.price.toLocaleString('vi-VN') + ' đ';
+        modalQuantity.textContent = `Số lượng: ${item.quantity}`; 
+        
+        cartSuccessModal.show();
+    }
+</script>

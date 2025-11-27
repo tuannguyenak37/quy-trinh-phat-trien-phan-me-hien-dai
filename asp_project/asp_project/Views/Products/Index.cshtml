@@ -1,0 +1,111 @@
+﻿@model IEnumerable<asp_project.Models.ViewModels.ProductSummaryViewModel>
+
+@{
+    ViewData["Title"] = "Danh sách sản phẩm của bạn";
+    Layout = "_StoreLayout";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+<div class="container mt-4">
+    <!-- Header + Tìm kiếm -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="bi bi-grid text-primary me-2"></i>Quản lý sản phẩm
+        </h2>
+        <div class="d-flex gap-2">
+            <input type="text" id="searchBox" class="form-control form-control-sm" placeholder="Tìm tên sản phẩm..." style="width: 220px;">
+            <a asp-controller="Products" asp-action="Create" class="btn btn-success">
+                <i class="bi bi-plus"></i> Thêm sản phẩm mới
+            </a>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle"></i> Bạn chưa có sản phẩm nào.
+        </div>
+    }
+    else
+    {
+        <div class="row" id="productList">
+            @foreach (var product in Model)
+            {
+                <div class="col-md-3 mb-4 product-item" data-name="@product.Ten.ToLower()">
+                    <div class="card shadow-sm border-0">
+                        <img src="@product.FirstImage" class="card-img-top" style="height:200px;object-fit:cover;" alt="@product.Ten" />
+                        <div class="card-body">
+                            <h5 class="card-title text-truncate">@product.Ten</h5>
+                            <p class="text-danger fw-bold">@product.Price.ToString("N0") ₫</p>
+                            
+                            <div class="d-flex gap-1 flex-wrap">
+                                <a asp-controller="Products" 
+                                   asp-action="Edit" 
+                                   asp-route-id="@product.Id" 
+                                   class="btn btn-sm btn-outline-primary flex-fill">
+                                    <i class="bi bi-pencil"></i> Chỉnh sửa
+                                </a>
+                                <form asp-controller="Products"
+      asp-action="Delete"
+      method="post"
+      class="flex-fill"
+      onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">
+    
+    @Html.AntiForgeryToken() 
+    
+    <input type="hidden" name="id" value="@product.Id" /> 
+    
+    <button type="submit" class="btn btn-sm btn-outline-danger w-100"> 
+        <i class="bi bi-trash"></i> Xóa
+    </button>
+</form>
+                               
+
+
+                                <a asp-controller="ProductPage" 
+                                   asp-action="Details" 
+                                   asp-route-id="@product.Id" 
+                                   target="_blank" 
+                                   class="btn btn-sm btn-outline-info flex-fill mt-1">
+                                    <i class="bi bi-eye"></i> Xem trước
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Thông báo khi không tìm thấy -->
+        <div id="noResults" class="text-center py-5 d-none">
+            <i class="bi bi-search display-4 text-muted"></i>
+            <p class="text-muted">Không tìm thấy sản phẩm nào.</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        const searchBox = document.getElementById('searchBox');
+        const items = document.querySelectorAll('.product-item');
+        const noResults = document.getElementById('noResults');
+
+        searchBox.addEventListener('input', function () {
+            const term = this.value.toLowerCase().trim();
+            let found = 0;
+
+            items.forEach(item => {
+                const name = item.getAttribute('data-name');
+                if (name.includes(term)) {
+                    item.style.display = '';
+                    found++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            noResults.classList.toggle('d-none', found > 0);
+        });
+    </script>
+}

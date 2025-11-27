@@ -1,0 +1,301 @@
+@model List<asp_project.Models.Address>
+@{
+    ViewData["Title"] = "Thanh toán";
+    Layout = "_Layout";
+}
+
+<style>
+    .summary-item-row { display: flex; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem; }
+    .summary-product-image { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; }
+    .summary-item-info { flex-grow: 1; margin-left: 1rem; }
+    .summary-item-price { min-width: 100px; text-align: right; font-weight: 500; }
+    .address-card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; cursor: pointer; }
+    .address-card.selected { border-color: var(--theme-color); background-color: var(--theme-color-light); box-shadow: 0 0 0 2px var(--theme-color); }
+</style>
+
+<div class="container mt-4 mb-5">
+    
+    <div class="row g-4">
+    
+        <div class="col-md-7">
+            
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">1. Thông tin giao hàng</h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <h5>Chọn từ Sổ địa chỉ của bạn:</h5>
+                        @if (Model.Any())
+                        {
+                            <div id="address-book">
+                                @foreach (var addr in Model)
+                                {
+                                    <div class="address-card @(addr.IsDefault ? "selected" : "")" onclick="selectAddress(this, '@addr.Id')">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="SelectedAddressId" id="addr_@addr.Id" value="@addr.Id" @(addr.IsDefault ? "checked" : "")>
+                                            <label class="form-check-label w-100" for="addr_@addr.Id">
+                                                <div class="d-flex justify-content-between">
+                                                    <strong>@addr.FullName</strong>
+                                                    @if(addr.IsDefault) { <span class="badge bg-primary">Mặc định</span> }
+                                                </div>
+                                                <div>@addr.PhoneNumber</div>
+                                                <div>@addr.StreetAddress</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <hr>
+                            <h5>Hoặc thêm địa chỉ mới:</h5>
+                        }
+                        else
+                        {
+                            <p class="text-muted">Bạn chưa có địa chỉ nào. Vui lòng thêm địa chỉ mới.</p>
+                        }
+                        
+                        @Html.Partial("_AddressFormPartial")
+                    }
+                    else
+                    {
+                        <p class="text-muted">Vui lòng nhập thông tin của bạn.</p>
+                        @Html.Partial("_AddressFormPartial")
+                    }
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">2. Phương thức thanh toán</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="PaymentMethod" id="payment_cod" value="COD" checked>
+                        <label class="form-check-label" for="payment_cod">
+                            Thanh toán khi nhận hàng (COD)
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="PaymentMethod" id="payment_bank" value="BankTransfer">
+                        <label class="form-check-label" for="payment_bank">
+                            Chuyển khoản ngân hàng
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">3. Ghi chú</h4>
+                </div>
+                <div class="card-body p-4">
+                    <textarea id="Notes" name="Notes" class="form-control" rows="3" placeholder="Ghi chú cho người bán (tùy chọn)..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">Tóm tắt đơn hàng</h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <div id="summary-items-container">
+                        </div>
+                    
+                    <div id="summary-empty-message" class="text-center text-muted p-3" style="display: none;">
+                        Giỏ hàng của bạn đang trống.
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tạm tính</span>
+                        <strong id="summary-subtotal">0 đ</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Phí vận chuyển</span>
+                        <strong>Miễn phí</strong>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold fs-5">
+                        <span>Tổng cộng</span>
+                        <span class="text-danger" id="summary-total">0 đ</span>
+                    </div>
+                    
+                    <div id="checkout-error" class="alert alert-danger mt-3" style="display: none;"></div>
+                    
+                    <div class="d-grid mt-4">
+                        <button type="button" class="btn btn-danger btn-lg" id="place-order-btn" onclick="placeOrder()">
+                            Đặt hàng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // (Biến toàn cục để lưu giỏ hàng)
+        let checkoutCart = []; 
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const itemsContainer = document.getElementById('summary-items-container');
+            const subtotalEl = document.getElementById('summary-subtotal');
+            const totalEl = document.getElementById('summary-total');
+            const emptyMsg = document.getElementById('summary-empty-message');
+            const placeOrderBtn = document.getElementById('place-order-btn');
+
+            // Hàm chính: Tải tóm tắt đơn hàng
+            function renderSummary() {
+                // (SỬA) Đọc từ 'sessionStorage'
+                checkoutCart = JSON.parse(sessionStorage.getItem('checkoutCart')) || [];
+                
+                itemsContainer.innerHTML = '';
+                let subtotal = 0;
+
+                if (checkoutCart.length === 0) {
+                    emptyMsg.style.display = 'block';
+                    placeOrderBtn.disabled = true;
+                    placeOrderBtn.textContent = 'Giỏ hàng rỗng';
+                } else {
+                    emptyMsg.style.display = 'none';
+                    placeOrderBtn.disabled = false;
+                    
+                    checkoutCart.forEach(item => {
+                        let itemTotal = item.price * item.quantity;
+                        subtotal += itemTotal;
+
+                        const itemHtml = `
+                            <div class="summary-item-row">
+                                <img src="${item.image}" alt="${item.name}" class="summary-product-image" />
+                                <div class="summary-item-info">
+                                    <div class="fw-bold">${item.name}</div>
+                                    <small class="text-muted">Phân loại: ${item.variantName}</small>
+                                </div>
+                                <div class="summary-item-price">
+                                    ${item.quantity} x ${item.price.toLocaleString('vi-VN')} đ
+                                </div>
+                            </div>
+                        `;
+                        itemsContainer.insertAdjacentHTML('beforeend', itemHtml);
+                    });
+                }
+                
+                subtotalEl.textContent = subtotal.toLocaleString('vi-VN') + ' đ';
+                totalEl.textContent = subtotal.toLocaleString('vi-VN') + ' đ';
+            }
+
+            // (Hàm này cho Sổ địa chỉ - nếu có)
+            window.selectAddress = function(cardElement, addressId) {
+                document.querySelectorAll('.address-card').forEach(card => card.classList.remove('selected'));
+                cardElement.classList.add('selected');
+                cardElement.querySelector('input[type="radio"]').checked = true;
+            }
+
+            // Chạy lần đầu khi tải trang
+            renderSummary();
+        });
+
+        // ----------------------------------------------------
+        // (ĐÃ SỬA) HÀM ĐẶT HÀNG (AJAX/FETCH)
+        // ----------------------------------------------------
+        async function placeOrder() {
+            const placeOrderBtn = document.getElementById('place-order-btn');
+            const errorDiv = document.getElementById('checkout-error');
+            
+            // --- (SỬA 1) NGĂN CHẶN NHẤP ĐÚP ---
+            // Nếu nút đang bị vô hiệu hóa, không làm gì cả
+            if (placeOrderBtn.disabled) {
+                return; 
+            }
+            
+            // Vô hiệu hóa nút NGAY LẬP TỨC
+            placeOrderBtn.disabled = true;
+            placeOrderBtn.textContent = 'Đang xử lý...';
+            errorDiv.style.display = 'none';
+
+            // --- 1. THU THẬP DỮ LIỆU ---
+            
+            const selectedAddressRadio = document.querySelector('input[name="SelectedAddressId"]:checked');
+            const selectedAddressId = selectedAddressRadio ? selectedAddressRadio.value : null;
+
+            const fullName = document.getElementById('FullName').value;
+            const phoneNumber = document.getElementById('PhoneNumber').value;
+            const streetAddress = document.getElementById('StreetAddress').value;
+
+            const paymentMethod = document.querySelector('input[name="PaymentMethod"]:checked').value;
+            const notes = document.getElementById('Notes').value;
+
+            const items = checkoutCart.map(item => ({
+                productId: item.productId,
+                skuCode: item.skuCode,
+                quantity: item.quantity
+            }));
+
+            // --- 2. TẠO GÓI DỮ LIỆU (VIEWMODEL) ---
+            const checkoutData = {
+                selectedAddressId: selectedAddressId,
+                fullName: fullName,
+                phoneNumber: phoneNumber,
+                address: streetAddress,
+                paymentMethod: paymentMethod,
+                notes: notes,
+                items: items
+            };
+            
+            // --- 3. GỬI LÊN SERVER ---
+            try {
+                const response = await fetch('/Checkout/PlaceOrder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(checkoutData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    // Xóa giỏ hàng khi thành công
+                    localStorage.removeItem('myCart'); 
+                    sessionStorage.removeItem('checkoutCart'); 
+                    
+                    window.dispatchEvent(new Event('cartUpdated')); 
+                    
+                    alert('Đặt hàng thành công!');
+                    // Chuyển sang trang chi tiết đơn hàng
+                    window.location.href = '/Order/Details/' + result.orderId;
+                    
+                    // Không bật lại nút vì chúng ta đang chuyển trang
+                    
+                } else {
+                    // Hiển thị lỗi từ Server (ví dụ: Hết hàng)
+                    const error = await response.json();
+                    errorDiv.textContent = error.message || 'Đã xảy ra lỗi. Vui lòng thử lại.';
+                    errorDiv.style.display = 'block';
+                    
+                    // --- (SỬA 2) CHỈ BẬT LẠI NÚT KHI CÓ LỖI ---
+                    placeOrderBtn.disabled = false;
+                    placeOrderBtn.textContent = 'Đặt hàng';
+                }
+            
+            } catch (error) {
+                // Lỗi mạng
+                errorDiv.textContent = 'Lỗi kết nối. Vui lòng kiểm tra mạng và thử lại.';
+                errorDiv.style.display = 'block';
+                
+                // --- (SỬA 3) CHỈ BẬT LẠI NÚT KHI CÓ LỖI ---
+                placeOrderBtn.disabled = false;
+                placeOrderBtn.textContent = 'Đặt hàng';
+            }
+            // (ĐÃ BỎ KHỐI FINALLY GÂY LỖI)
+        }
+    </script>
+}

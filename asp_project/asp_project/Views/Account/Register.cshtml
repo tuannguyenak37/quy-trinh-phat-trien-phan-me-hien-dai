@@ -1,0 +1,74 @@
+﻿@model asp_project.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Đăng ký";
+}
+
+<div class="container min-vh-100 d-flex justify-content-center align-items-center" style="background: #E3F2FD;">
+    <div class="row w-100">
+        <div class="col-md-6 d-none d-md-flex align-items-center justify-content-center">
+            <img src="https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=600&q=80"
+                 alt="Fashion" class="img-fluid rounded shadow" style="max-height:500px;">
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow rounded p-4" style="border:none; background-color:#ffffff;">
+                <h2 class="text-center mb-3" style="color:#0288D1;">@ViewData["Title"]</h2>
+                <h5 class="text-center mb-4 text-muted">Tạo tài khoản mới</h5>
+
+                <form asp-action="Register" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="FirstName" class="form-label fw-bold">Họ</label>
+                            <input asp-for="FirstName" class="form-control border border-info" />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LastName" class="form-label fw-bold">Tên</label>
+                            <input asp-for="LastName" class="form-control border border-info" />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Birthday" class="form-label fw-bold">Ngày sinh</label>
+                        <input asp-for="Birthday" type="date" class="form-control border border-info" />
+                        <span asp-validation-for="Birthday" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-bold">Email</label>
+                        <input asp-for="Email" class="form-control border border-info" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label fw-bold">Mật khẩu</label>
+                        <input asp-for="Password" type="password" class="form-control border border-info" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ConfirmPassword" class="form-label fw-bold">Xác nhận mật khẩu</label>
+                        <input asp-for="ConfirmPassword" type="password" class="form-control border border-info" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn w-100 mb-2 rounded-pill" style="background-color:#0288D1; color:white;">Đăng ký</button>
+
+                    <div class="text-center mt-2">
+                        <a href="/Account/Login" class="text-decoration-none fw-bold" style="color:#0277BD;">Đã có tài khoản? Đăng nhập</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
