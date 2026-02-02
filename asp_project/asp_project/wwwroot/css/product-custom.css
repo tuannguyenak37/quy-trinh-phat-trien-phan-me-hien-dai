@@ -1,0 +1,333 @@
+/* ============================================
+   PRODUCT DETAILS CUSTOM STYLES
+   Extracted from ProductPage/Details.cshtml
+   ============================================ */
+
+/* === VARIABLES === */
+:root {
+  --theme-primary: #0a0a0a;
+  --theme-accent: #d4af37;
+  --theme-accent-hover: #e6c55b;
+  --theme-light: #f9f9f9;
+  --theme-border: #e0e0e0;
+}
+
+body {
+  background-color: #fafafa;
+}
+
+.product-detail-wrapper {
+  background-color: #fff;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+  padding: 40px;
+  margin-top: 2rem;
+}
+
+/* Gallery */
+.product-gallery-main {
+  width: 100%;
+  height: 500px;
+  object-fit: contain;
+  border-radius: 12px;
+  background-color: #fff;
+  transition: all 0.3s ease;
+}
+
+.product-gallery-thumbnails {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+.thumbnail-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.thumbnail-image:hover,
+.thumbnail-image.active {
+  opacity: 1;
+  border-color: var(--theme-accent);
+  transform: translateY(-2px);
+}
+
+/* Product Info */
+.product-title-main {
+  font-family: "Playfair Display", serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--theme-primary);
+  line-height: 1.2;
+}
+
+.product-price-large {
+  font-family: "Inter", sans-serif;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #b71c1c; /* Burgundy red for price */
+  margin-bottom: 1.5rem;
+}
+
+/* Variant Selectors */
+.variant-section {
+  margin-bottom: 24px;
+}
+.variant-label {
+  font-family: "Inter", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+  display: block;
+  color: #616161;
+}
+
+.variant-btn {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  color: #212121;
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  min-width: 60px;
+}
+
+.variant-btn:hover {
+  border-color: var(--theme-accent);
+}
+
+.variant-btn.active {
+  background-color: var(--theme-primary);
+  color: var(--theme-accent);
+  border-color: var(--theme-primary);
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.variant-btn.disabled {
+  background-color: #f5f5f5;
+  color: #ccc;
+  border-color: #eee;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+/* Quantity */
+.quantity-control {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 30px;
+  padding: 5px;
+}
+
+.quantity-input {
+  border: none;
+  width: 50px;
+  text-align: center;
+  font-weight: 600;
+  background: transparent;
+}
+
+.quantity-input:focus {
+  outline: none;
+}
+
+/* Action Buttons */
+.action-btn-group {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.btn-add-cart,
+.btn-buy-now {
+  flex: 1;
+  padding: 15px;
+  border-radius: 50px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.btn-add-cart {
+  background: white;
+  border: 2px solid var(--theme-primary);
+  color: var(--theme-primary);
+}
+
+.btn-buy-now {
+  background: var(--theme-primary); /* Use primary gradient later */
+  background: linear-gradient(135deg, #0a0a0a 0%, #212121 100%);
+  border: 2px solid var(--theme-primary);
+  color: white;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-add-cart:hover:not(:disabled) {
+  background: var(--theme-primary);
+  color: white;
+}
+
+.btn-buy-now:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d4af37 0%, #e6c55b 100%);
+  border-color: #e6c55b;
+  color: #0a0a0a;
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+}
+
+.btn-add-cart:disabled,
+.btn-buy-now:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #e0e0e0;
+  border-color: #e0e0e0;
+  color: #9e9e9e;
+  box-shadow: none;
+}
+
+/* Shop Card */
+.shop-card-wrapper {
+  margin-top: 40px;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #fdfbf7 0%, #f5f5f5 100%);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.shop-card-wrapper::after {
+  content: "";
+  position: absolute;
+  right: -20px;
+  bottom: -20px;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(
+    circle,
+    rgba(212, 175, 55, 0.15) 0%,
+    transparent 70%
+  );
+}
+
+.shop-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.shop-info-text {
+  flex: 1;
+}
+
+.shop-name-link {
+  font-family: "Playfair Display", serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--theme-primary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.shop-name-link:hover {
+  color: var(--theme-accent);
+}
+
+.shop-meta {
+  font-size: 0.85rem;
+  color: #616161;
+  margin-top: 4px;
+  display: flex;
+  gap: 15px;
+}
+
+.shop-btn {
+  padding: 8px 20px;
+  border: 1px solid var(--theme-primary);
+  border-radius: 20px;
+  color: var(--theme-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s;
+  white-space: nowrap;
+  background: transparent;
+}
+
+.shop-btn:hover {
+  background: var(--theme-primary);
+  color: #d4af37;
+}
+
+/* Specs & Layout */
+.product-details-tabs {
+  margin-top: 4rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.detail-tab {
+  font-family: "Playfair Display", serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  padding: 10px 30px;
+  border: none;
+  background: transparent;
+  color: #9e9e9e;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+}
+
+.detail-tab.active {
+  color: var(--theme-primary);
+  border-bottom-color: var(--theme-accent);
+}
+
+.detail-content {
+  padding: 2rem 0;
+  font-size: 1rem;
+  color: #424242;
+  line-height: 1.8;
+}
+
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.spec-table tr {
+  border-bottom: 1px solid #f0f0f0;
+}
+.spec-table td {
+  padding: 15px 10px;
+}
+.spec-label {
+  font-weight: 600;
+  color: #757575;
+  width: 200px;
+}

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using asp_project.Models;
 using asp_project.ViewModels;
-using MongoDB.Driver; // <--- DÙNG THƯ VIỆN GỐC ĐỂ TRÁNH LỖI
+using MongoDB.Driver;
 using BCrypt.Net;
 using MongoDB.Bson;
 using System;

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "OtO/SqqtOtU=",
+  "dgSpecHash": "ZuoZ8AXGWjs=",
   "success": true,
-  "projectFilePath": "D:\\ASPNETMCV\\ASPnet_core\\asp_project\\asp_project\\asp_project.csproj",
+  "projectFilePath": "D:\\ASPNETMCV\\quy-trinh-phat-trien-phan-me-hien-dai\\asp_project\\asp_project\\asp_project.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Maliketh\\.nuget\\packages\\awssdk.core\\3.7.100.14\\awssdk.core.3.7.100.14.nupkg.sha512",
     "C:\\Users\\Maliketh\\.nuget\\packages\\awssdk.securitytoken\\3.7.100.14\\awssdk.securitytoken.3.7.100.14.nupkg.sha512",

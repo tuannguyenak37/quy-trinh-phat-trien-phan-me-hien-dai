@@ -45,7 +45,7 @@ namespace asp_project.Controllers
             }
         }
 
-        // --- HÀM 1: TOP BÁN CHẠY (Logic đã fix chữ thường) ---
+        
         private async Task<List<TopProductViewModel>> GetTopSellingProducts()
         {
             var pipeline = new List<BsonDocument>

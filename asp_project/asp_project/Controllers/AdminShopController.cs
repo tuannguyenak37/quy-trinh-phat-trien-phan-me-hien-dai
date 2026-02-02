@@ -18,9 +18,7 @@ namespace asp_project.Controllers
             _shopCollection = database.GetCollection<Shop>("Shop");
         }
 
-        // ==========================================
-        // 1. DANH SÁCH & TÌM KIẾM & THỐNG KÊ
-        // ==========================================
+        
         [HttpGet]
         public async Task<IActionResult> Index(string searchString)
         {

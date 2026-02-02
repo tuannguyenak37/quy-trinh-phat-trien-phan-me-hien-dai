@@ -19,9 +19,9 @@ namespace asp_project.Controllers
     [Authorize]
     public class ShopController : Controller
     {
-        // Thay AppDbContext bằng IMongoCollection
         private readonly IMongoCollection<Shop> _shopCollection;
         private readonly IMongoCollection<User> _userCollection;
+        private readonly IMongoCollection<Product> _productCollection;
         private readonly IWebHostEnvironment _env;
 
         public ShopController(IMongoDatabase database, IWebHostEnvironment env)
@@ -30,6 +30,30 @@ namespace asp_project.Controllers
             // Kết nối đúng tên bảng "Shop" và "User" (số ít) như bạn đã cấu hình
             _shopCollection = database.GetCollection<Shop>("Shop");
             _userCollection = database.GetCollection<User>("User");
+            _productCollection = database.GetCollection<Product>("Products");
+        }
+
+        // GET: /Shop/Details/{id}
+        [AllowAnonymous]
+        public async Task<IActionResult> Details(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return NotFound();
+
+            var shop = await _shopCollection.Find(s => s.Id == id).FirstOrDefaultAsync();
+            if (shop == null) return NotFound();
+
+            var products = await _productCollection
+                .Find(p => p.ShopId == id && p.IsVisible == true)
+                .SortByDescending(p => p.CreatedAt) // Mới nhất lên đầu
+                .ToListAsync();
+
+            var viewModel = new asp_project.Models.ViewModels.ShopDetailsViewModel
+            {
+                Shop = shop,
+                Products = products
+            };
+
+            return View(viewModel);
         }
 
         // GET: /Shop/RegisterShopView

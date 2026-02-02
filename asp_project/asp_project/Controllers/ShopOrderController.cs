@@ -38,8 +38,7 @@ namespace asp_project.Controllers
             var shopId = GetCurrentShopId();
             if (string.IsNullOrEmpty(shopId)) return Unauthorized("Không tìm thấy ShopId.");
 
-            // (QUAN TRỌNG) Tìm tất cả đơn hàng
-            // mà mảng 'ShopIds' CÓ CHỨA ShopId của shop này
+            
             var filter = Builders<Order>.Filter.AnyEq(o => o.ShopIds, shopId);
             
             var shopOrders = await _ordersCollection
@@ -70,8 +69,7 @@ namespace asp_project.Controllers
                 return NotFound("Không tìm thấy đơn hàng hoặc bạn không có quyền xem đơn này.");
             }
 
-            // (Logic) Chỉ hiển thị các sản phẩm thuộc shop này
-            // Lọc lại danh sách Items
+           
             var shopProductIds = (await _productsCollection.Find(p => p.ShopId == shopId).Project(p => p.Id).ToListAsync()).ToHashSet();
             
             // Chỉ giữ lại các items mà ProductId thuộc về shop

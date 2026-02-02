@@ -5,8 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace asp_project.Models
 {
-    // [QUAN TRỌNG] Dòng này giúp bỏ qua lỗi nếu DB có trường lạ/thừa
-    // Nó là "bùa hộ mệnh" giúp web không bị sập vì lỗi FormatException
+    
     [BsonIgnoreExtraElements] 
     public class User
     {
@@ -14,8 +13,7 @@ namespace asp_project.Models
         [BsonRepresentation(BsonType.ObjectId)] // Tự động chuyển ObjectId sang string
         public string? Id { get; set; }
 
-        // [QUAN TRỌNG] Map chính xác tên trường trong Database
-        // Lỗi báo 'FirstName', ta map đúng "FirstName"
+        
         [BsonElement("FirstName")] 
         [Required(ErrorMessage = "Họ là bắt buộc")]
         [StringLength(50, ErrorMessage = "Họ không được dài quá 50 ký tự")]

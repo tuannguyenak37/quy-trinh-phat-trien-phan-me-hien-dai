@@ -10,15 +10,15 @@ namespace asp_project.ViewModels
 
     public class ProductStockUpdateModel
     {
-        public string ProductId { get; set; }
-        public string ProductName { get; set; }
+        public string ProductId { get; set; } = string.Empty;
+        public string ProductName { get; set; } = string.Empty;
         public List<SkuStockUpdateModel> Skus { get; set; } = new List<SkuStockUpdateModel>();
     }
 
     public class SkuStockUpdateModel
     {
-        public string SkuCode { get; set; }
-        public string SkuName { get; set; }
+        public string SkuCode { get; set; } = string.Empty;
+        public string SkuName { get; set; } = string.Empty;
         
         public string ImageUrl { get; set; } = string.Empty; // <-- (MỚI) Thêm trường ảnh
 

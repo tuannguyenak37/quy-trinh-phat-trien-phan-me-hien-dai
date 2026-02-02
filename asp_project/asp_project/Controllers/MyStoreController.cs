@@ -1,5 +1,4 @@
-﻿// /Controllers/MyStoreController.cs
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using MongoDB.Driver;
 using asp_project.Models;
@@ -11,8 +10,8 @@ using System;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
-using ClosedXML.Excel; // <-- (MỚI) Thêm using cho Excel
-using System.IO; // <-- (MỚI) Thêm using cho MemoryStream
+using ClosedXML.Excel; 
+using System.IO; 
 
 namespace asp_project.Controllers
 {
@@ -309,25 +308,24 @@ private (List<string>, List<decimal>, List<int>, decimal, int) _processChartStat
 
     private Dictionary<string, int> _processStatusStats(List<BsonDocument> statusStats) 
 {
-    // 1. Khởi tạo danh sách mặc định với Key khớp 100% với file View .cshtml
+
     var result = new Dictionary<string, int> {
         { "Pending", 0 },
         { "Shipping", 0 },
         { "Delivered", 0 },
-        { "Cancelled", 0 } // <--- Dùng 2 chữ L để khớp với JS: kpiCancelledEl
+        { "Cancelled", 0 } 
     };
 
     foreach (var stat in statusStats)
     {
-        string dbStatus = stat["_id"].AsString; // Ví dụ DB trả về "Canceled" (1 chữ L)
+        string dbStatus = stat["_id"].AsString; 
         int count = stat["count"].AsInt32;
 
-        // Map tên trạng thái
         string uiKey = dbStatus;
         
-        // Nếu DB là "Canceled" thì đổi thành "Cancelled" cho khớp UI
+        
         if (dbStatus == "Canceled") uiKey = "Cancelled";
-        if (dbStatus == "Cancled") uiKey = "Cancelled"; // Phòng hờ sai chính tả khác
+        if (dbStatus == "Cancled") uiKey = "Cancelled"; 
 
         if (result.ContainsKey(uiKey))
         {
@@ -335,7 +333,7 @@ private (List<string>, List<decimal>, List<int>, decimal, int) _processChartStat
         }
         else
         {
-            // Các trạng thái lạ khác
+          
             result[uiKey] = count;
         }
     }

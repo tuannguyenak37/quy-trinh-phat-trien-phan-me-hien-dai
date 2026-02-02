@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using MongoDB.Driver;
 using asp_project.Models;
 using asp_project.Models.ViewModels;
-using asp_project.ViewModels; // nơi chứa CreateProductViewModel
+using asp_project.ViewModels;
 using System.IO;
 using System.Collections.Generic;
 using System;

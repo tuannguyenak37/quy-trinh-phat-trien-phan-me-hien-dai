@@ -2,7 +2,6 @@ using System.Collections.Generic;
 
 namespace asp_project.Models.ViewModels
 {
-    // Class này dùng để "gói" 2 danh sách lại gửi sang View
     public class HomeIndexViewModel
     {
         // Danh sách 1: Top sản phẩm bán chạy

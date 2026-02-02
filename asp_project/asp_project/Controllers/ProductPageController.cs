@@ -1,7 +1,9 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
-using asp_project.Models; // Đảm bảo bạn using model Product
+using asp_project.Models; 
+using asp_project.Models.ViewModels;
+using System.Collections.Generic;
 
 namespace asp_project.Controllers
 {
@@ -9,11 +11,13 @@ namespace asp_project.Controllers
     public class ProductPageController : Controller
     {
         private readonly IMongoCollection<Product> _productsCollection;
+        private readonly IMongoCollection<Shop> _shopCollection;
 
         //  inject IMongoDatabase 
         public ProductPageController(IMongoDatabase database)
         {
             _productsCollection = database.GetCollection<Product>("Products");
+            _shopCollection = database.GetCollection<Shop>("Shop");
         }
 
         // -------------------------------------
@@ -27,24 +31,44 @@ namespace asp_project.Controllers
                 return BadRequest("Không có ID sản phẩm.");
             }
 
-            // *** ĐIỀU QUAN TRỌNG NHẤT ***
-            // Tìm sản phẩm theo ID VÀ sản phẩm đó PHẢI ĐANG "HIỂN THỊ" (IsVisible == true)
+            // 1. Lấy sản phẩm
             var product = await _productsCollection
                 .Find(p => p.Id == id && p.IsVisible == true)
                 .FirstOrDefaultAsync();
 
             if (product == null)
             {
-                // Không tìm thấy,
-                // hoặc sản phẩm đang bị "Ẩn" (IsVisible == false)
                 return NotFound("Không tìm thấy sản phẩm.");
             }
 
-            // Trả về View với dữ liệu sản phẩm
-            return View(product);
-        }
+            // 2. Lấy thông tin Shop
+            Shop shop = null;
+            if (!string.IsNullOrEmpty(product.ShopId))
+            {
+                shop = await _shopCollection.Find(s => s.Id == product.ShopId).FirstOrDefaultAsync();
+            }
 
-        // Bạn có thể thêm các trang public khác ở đây, 
-        // ví dụ: trang chủ, trang danh sách sản phẩm...
+            // 3. Lấy sản phẩm liên quan (Cùng danh mục, khác ID này)
+            var relatedProducts = new List<Product>();
+            if (product.DanhMuc != null && product.DanhMuc.Count > 0)
+            {
+                var categoryToFind = product.DanhMuc[0];
+                relatedProducts = await _productsCollection
+                    .Find(p => p.DanhMuc.Contains(categoryToFind) && p.Id != id && p.IsVisible == true)
+                    .Limit(4)
+                    .ToListAsync();
+            }
+
+            // 4. Đóng gói vào ViewModel
+            var viewModel = new ProductPageDetailViewModel
+            {
+                Product = product,
+                Shop = shop,
+                RelatedProducts = relatedProducts
+            };
+
+            // Trả về View với ViewModel mới
+            return View(viewModel);
+        }
     }
 }

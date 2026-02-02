@@ -1674,11 +1674,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\ASPNETMCV\\ASPnet_core\\asp_project\\asp_project\\asp_project.csproj",
+      "projectUniqueName": "D:\\ASPNETMCV\\quy-trinh-phat-trien-phan-me-hien-dai\\asp_project\\asp_project\\asp_project.csproj",
       "projectName": "asp_project",
-      "projectPath": "D:\\ASPNETMCV\\ASPnet_core\\asp_project\\asp_project\\asp_project.csproj",
+      "projectPath": "D:\\ASPNETMCV\\quy-trinh-phat-trien-phan-me-hien-dai\\asp_project\\asp_project\\asp_project.csproj",
       "packagesPath": "C:\\Users\\Maliketh\\.nuget\\packages\\",
-      "outputPath": "D:\\ASPNETMCV\\ASPnet_core\\asp_project\\asp_project\\obj\\",
+      "outputPath": "D:\\ASPNETMCV\\quy-trinh-phat-trien-phan-me-hien-dai\\asp_project\\asp_project\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

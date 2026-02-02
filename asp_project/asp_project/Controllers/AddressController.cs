@@ -29,13 +29,13 @@ public class AddressController : Controller
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
         model.UserId = userId;
-        model.IsHidden = false; // Luôn hiển thị khi mới tạo
+        model.IsHidden = false; 
 
         await _addressesCollection.InsertOneAsync(model);
-        return Ok(model); // Trả về địa chỉ vừa tạo
+        return Ok(model); 
     }
 
-    // API: "ẨN" địa chỉ (Chức năng "Ẩn")
+    
     [HttpPut]
     public async Task<IActionResult> Hide(string id)
     {
@@ -51,5 +51,5 @@ public class AddressController : Controller
         return Ok(new { success = true });
     }
     
-    // (Bạn có thể thêm các API khác như GetList, Update, SetDefault...)
+    
 }
